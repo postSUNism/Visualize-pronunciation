@@ -184,133 +184,222 @@
 
   <script>
     // 状态管理
-    const state = {
-      awake: false,
-      stable: false,
-      hits: 0,
-      checking: false,
-      recognition: null
-    };
+const state = {
+  awake: false,
+  stable: false,
+  hits: 0,
+  checking: false,
+  recognition: null
+};
 
-    const root = document.documentElement;
-    const body = document.body;
-    const letterE = document.getElementById('letterE');
-    const manaFill = document.getElementById('manaFill');
-    const guideTitle = document.getElementById('guideTitle');
-    const guideText = document.getElementById('guideText');
-    const status = document.getElementById('status');
-    const meterLabel = document.getElementById('meterLabel');
-    const arcMain = document.getElementById('arcMain');
+const root = document.documentElement;
+const body = document.body;
+const letterE = document.getElementById('letterE');
+const manaFill = document.getElementById('manaFill');
+const guideTitle = document.getElementById('guideTitle');
+const guideText = document.getElementById('guideText');
+const status = document.getElementById('status');
+const meterLabel = document.getElementById('meterLabel');
 
-    // 升级 3：根据状态更新显眼的引导语和发音规则
-    function updateGuide() {
-      if (!state.awake) {
-        guideTitle.textContent = "第一步：唤醒";
-        guideText.innerHTML = "点击紫水晶 <b>e</b> 唤醒它。它将展现魔力，改变单词的结构。";
-      } else if (!state.stable) {
-        guideTitle.textContent = "第二步：注入魔力";
-        guideText.innerHTML = "<b>长按住紫水晶 e</b> 并大声读出 <b>'cape'</b>。<br><small>规则：Magic E 让中间的 a 从 /æ/ 变成长音 /eɪ/！</small>";
-        if (state.hits > 0) {
-          guideTitle.textContent = `魔力积蓄中 (${state.hits}/3)`;
-        }
-      } else {
-        guideTitle.textContent = "转化成功！";
-        guideText.innerHTML = "你已掌握 Magic E 的秘密。原本的 <b>cap</b> 已经稳定成为了 <b>cape</b>。";
-      }
-    }
+// --- 核心修复：录音控制逻辑 ---
 
-    // 升级 2：发音成功时的能量爆发效果
-    function triggerEnergySurge() {
-      manaFill.classList.remove('surge');
-      void manaFill.offsetWidth; // 强制重绘
-      manaFill.classList.add('surge');
-    }
+// 启动录音
+function startRecording(e) {
+  if (!state.awake || state.stable || state.checking) return;
+  
+  // 阻止默认行为（如移动端的长按菜单）
+  e.preventDefault();
 
-    function updateVisuals() {
-      const level = state.hits / 3;
-      root.style.setProperty('--energy-fill', `${level * 100}%`);
-      meterLabel.textContent = `${state.hits} / 3`;
-      
-      if (state.awake) {
-        body.classList.add('is-awake');
-        status.textContent = state.stable ? "炼金转化完成！" : "请长按 e 并发音...";
-        root.style.setProperty('--arc-width', `${2 + level * 8}px`);
-      }
-      
-      if (state.stable) {
-        body.classList.add('is-stable');
-        document.getElementById('resetButton').disabled = false;
-      }
-      updateGuide();
-    }
-
-    // 语音比对逻辑（保持原有精简版）
-    function initRecognition() {
-      const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!Speech) return null;
-      const rec = new Speech();
-      rec.lang = 'en-US';
-      rec.onresult = (e) => {
-        const word = e.results[0][0].transcript.toLowerCase();
-        if (word.includes('cape') || word.includes('keep') || word.includes('kape')) {
-          state.hits = Math.min(state.hits + 1, 3);
-          if (state.hits === 3) state.stable = true;
-          triggerEnergySurge(); // 触发高亮效果
-        } else {
-          state.hits = Math.max(0, state.hits - 1);
-        }
-        updateVisuals();
-      };
-      rec.onend = () => { state.checking = false; updateVisuals(); };
-      return rec;
-    }
-
+  // 如果识别实例不存在，则初始化
+  if (!state.recognition) {
     state.recognition = initRecognition();
+  }
 
-    // 升级 1：长按交互逻辑
-    // 使用 Pointer Events 以兼容手机和电脑
-    letterE.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      if (!state.awake) {
-        state.awake = true;
-        updateVisuals();
-        return;
-      }
-      if (state.stable || state.checking || !state.recognition) return;
-
-      state.checking = true;
-      status.textContent = "正在聆听中...";
-      letterE.style.filter = "brightness(2) saturate(2)";
+  if (state.recognition) {
+    try {
       state.recognition.start();
-    });
+      state.checking = true;
+      status.textContent = "正在聆听 'cape'...";
+      root.style.setProperty('--checking-pulse', '1');
+    } catch (err) {
+      console.warn("识别已在运行中");
+    }
+  }
+}
 
-    const stopRecording = () => {
-      if (state.checking && state.recognition) {
-        state.recognition.stop();
-        letterE.style.filter = "";
-      }
-    };
+// 停止录音
+function stopRecording() {
+  if (!state.checking) return;
+  
+  if (state.recognition) {
+    state.recognition.stop();
+    // state.checking 的重置在 rec.onend 中处理
+  }
+}
 
-    window.addEventListener('pointerup', stopRecording);
-    letterE.addEventListener('pointerleave', stopRecording);
-
-    // 其他原有功能逻辑
-    document.getElementById('listenButton').addEventListener('click', () => {
-      const synth = window.speechSynthesis;
-      const utter = new SpeechSynthesisUtterance(state.awake ? "cape" : "cap");
-      utter.lang = 'en-US';
-      synth.speak(utter);
-    });
-
-    document.getElementById('resetButton').addEventListener('click', () => {
-      state.awake = false; state.stable = false; state.hits = 0;
-      body.classList.remove('is-awake', 'is-stable');
-      document.getElementById('resetButton').disabled = true;
-      updateVisuals();
-    });
-
-    // 初始调用
+// 唤醒逻辑：第一次点击唤醒，之后变为长按录音
+letterE.addEventListener('click', () => {
+  if (!state.awake) {
+    state.awake = true;
     updateVisuals();
+  }
+});
+
+// 绑定长按事件
+letterE.addEventListener('pointerdown', startRecording);
+window.addEventListener('pointerup', stopRecording);
+letterE.addEventListener('pointerleave', stopRecording);
+
+// --- 界面与引导更新 ---
+
+function updateGuide() {
+  if (!state.awake) {
+    guideTitle.textContent = "第一步：唤醒";
+    guideText.innerHTML = "点击紫水晶 <b>e</b> 唤醒它。它将展现魔力，改变单词的结构。";
+  } else if (!state.stable) {
+    guideTitle.textContent = `魔力积蓄中 (${Math.floor(state.hits)}/3)`;
+    guideText.innerHTML = "<b>长按住紫水晶 e</b> 并大声读出 <b>'cape'</b>。<br><small>提示：让 a 发出长音 /eɪ/，像字母 A 的读音一样！</small>";
+  } else {
+    guideTitle.textContent = "转化成功！";
+    guideText.innerHTML = "你已掌握 Magic E 的秘密。原本的 <b>cap</b> 已经稳定成为了 <b>cape</b>。";
+  }
+}
+
+function triggerEnergySurge() {
+  manaFill.classList.remove('surge');
+  void manaFill.offsetWidth; 
+  manaFill.classList.add('surge');
+}
+
+function updateVisuals() {
+  const level = state.hits / 3;
+  root.style.setProperty('--energy-fill', `${level * 100}%`);
+  meterLabel.textContent = `${Math.floor(state.hits)} / 3`;
+  
+  if (state.awake) {
+    body.classList.add('is-awake');
+    if (!state.checking) {
+        status.textContent = state.stable ? "炼金转化完成！" : "请长按 e 并发音...";
+    }
+    root.style.setProperty('--arc-width', `${2 + level * 8}px`);
+  }
+  
+  if (state.stable) {
+    body.classList.add('is-stable');
+    document.getElementById('resetButton').disabled = false;
+    status.textContent = "完美转化！";
+  }
+  updateGuide();
+}
+
+// --- 语音识别核心 (你提供的算法版) ---
+
+function initRecognition() {
+  const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Speech) {
+    status.textContent = "浏览器不支持语音识别";
+    return null;
+  }
+  const rec = new Speech();
+  rec.lang = 'en-US';
+  rec.continuous = false;
+  rec.interimResults = false;
+  
+  rec.onresult = (e) => {
+    const transcript = e.results[0][0].transcript;
+    const confidence = e.results[0][0].confidence;
+    const score = evaluatePronunciation(transcript, confidence);
+
+    if (score >= 80) {
+      state.hits = Math.min(state.hits + 1, 3);
+      triggerEnergySurge(); 
+      status.textContent = "完美长元音！✨";
+    } else if (score >= 50) {
+      state.hits = Math.min(state.hits + 0.5, 3);
+      status.textContent = "很接近了，发音再饱满一点！👏";
+    } else {
+      state.hits = Math.max(0, state.hits - 0.3);
+      status.textContent = "听起来像短音 'cap'，记得拉长 a 的声音！";
+    }
+
+    if (state.hits >= 3) state.stable = true;
+    updateVisuals();
+  };
+  
+  rec.onend = () => { 
+    state.checking = false;
+    root.style.setProperty('--checking-pulse', '0');
+    updateVisuals(); 
+  };
+  
+  rec.onerror = (e) => {
+    state.checking = false;
+    if (e.error !== 'no-speech') {
+        status.textContent = "试着离麦克风近一点...";
+    }
+  };
+  
+  return rec;
+}
+
+// --- 辅助算法函数 ---
+
+function levenshteinDistance(a, b) {
+  const matrix = [];
+  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+function evaluatePronunciation(transcript, confidence) {
+  const word = transcript.toLowerCase().trim().replace(/[^\w\s]/g, '');
+  const perfectMatches = ['cape', 'kape', 'kayp', 'cake'];
+  const longAVariants = ['cave', 'tape', 'shape', 'keep', 'k', 'ate'];
+  const shortAVariants = ['cap', 'cab', 'cat', 'map'];
+
+  let baseScore = 0;
+  if (perfectMatches.includes(word)) baseScore = 100;
+  else if (longAVariants.includes(word)) baseScore = 75;
+  else if (shortAVariants.includes(word)) baseScore = 30;
+  else {
+    const target = 'cape';
+    const distance = levenshteinDistance(word, target);
+    const maxLength = Math.max(word.length, target.length);
+    baseScore = ((maxLength - distance) / maxLength) * 100;
+  }
+
+  const safeConfidence = confidence > 0 ? confidence : 0.5; 
+  return Math.round(baseScore * (0.7 + 0.3 * safeConfidence));
+}
+
+// --- 其他功能 ---
+
+document.getElementById('listenButton').addEventListener('click', () => {
+  const synth = window.speechSynthesis;
+  const utter = new SpeechSynthesisUtterance(state.awake ? "cape" : "cap");
+  utter.lang = 'en-US';
+  synth.speak(utter);
+});
+
+document.getElementById('resetButton').addEventListener('click', () => {
+  state.awake = false; state.stable = false; state.hits = 0;
+  body.classList.remove('is-awake', 'is-stable');
+  document.getElementById('resetButton').disabled = true;
+  status.textContent = "Magic E 正在沉睡...";
+  updateVisuals();
+});
+
+updateVisuals();
+
   </script>
 </body>
 </html>
