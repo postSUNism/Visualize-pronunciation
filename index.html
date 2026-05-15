@@ -346,8 +346,6 @@
     }
 
     .magic-e:focus-visible,
-    .spell-button:focus-visible,
-    .mistake-button:focus-visible,
     .wake-button:focus-visible,
     .listen-button:focus-visible,
     .voice-button:focus-visible,
@@ -427,14 +425,16 @@
       gap: 1rem;
       padding: clamp(1rem, 3vw, 1.5rem);
       border-radius: 14px;
-      border: 1px solid rgba(var(--gold), 0.28);
+      border: 1px solid rgba(var(--gold), 0.34);
       background:
-        linear-gradient(145deg, rgba(24, 22, 28, 0.9), rgba(3, 3, 6, 0.92)),
-        var(--obsidian);
+        linear-gradient(145deg, rgba(255, 244, 214, 0.08), rgba(111, 69, 172, 0.08)),
+        rgba(8, 8, 12, 0.5);
       box-shadow:
-        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-        inset 0 0 2.8rem rgba(var(--violet), 0.06),
-        0 1rem 3rem rgba(0, 0, 0, 0.4);
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        inset 0 0 2.8rem rgba(var(--violet), 0.08),
+        0 1.2rem 3.5rem rgba(0, 0, 0, 0.42);
+      backdrop-filter: blur(22px) saturate(1.35);
+      -webkit-backdrop-filter: blur(22px) saturate(1.35);
       overflow: hidden;
     }
 
@@ -450,6 +450,8 @@
         radial-gradient(circle at 90% 50%, rgba(var(--gold), 0.2), transparent 9%);
       pointer-events: none;
       opacity: 0.72;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
     }
 
     .panel-content {
@@ -489,11 +491,13 @@
       border: 1px solid rgba(var(--gold), 0.3);
       padding: 0.38rem;
       background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.2)),
-        rgba(6, 5, 8, 0.8);
+        linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(0, 0, 0, 0.18)),
+        rgba(6, 5, 8, 0.42);
       box-shadow:
         inset 0 0 1rem rgba(0, 0, 0, 0.72),
-        0 0 1.2rem rgba(var(--gold), 0.08);
+        0 0 1.2rem rgba(var(--gold), 0.12);
+      backdrop-filter: blur(16px) saturate(1.25);
+      -webkit-backdrop-filter: blur(16px) saturate(1.25);
       overflow: hidden;
     }
 
@@ -541,8 +545,6 @@
       font: inherit;
     }
 
-    .spell-button,
-    .mistake-button,
     .wake-button,
     .listen-button,
     .voice-button,
@@ -554,25 +556,15 @@
       color: #fff4dc;
       cursor: pointer;
       background:
-        linear-gradient(145deg, rgba(255, 236, 190, 0.14), rgba(0, 0, 0, 0.28)),
-        rgba(18, 15, 20, 0.92);
+        linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(255, 236, 190, 0.06) 42%, rgba(0, 0, 0, 0.22)),
+        rgba(18, 15, 20, 0.48);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2),
         0 0.8rem 1.6rem rgba(0, 0, 0, 0.22);
       transition: transform 160ms ease, border-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
-    }
-
-    .spell-button {
-      border-color: rgba(var(--violet), 0.55);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.13),
-        0 0 1.6rem rgba(var(--violet), 0.16),
-        0 0.8rem 1.6rem rgba(0, 0, 0, 0.22);
-    }
-
-    .mistake-button {
-      color: #ffd6c8;
-      border-color: rgba(255, 111, 75, 0.38);
+      backdrop-filter: blur(14px) saturate(1.2);
+      -webkit-backdrop-filter: blur(14px) saturate(1.2);
     }
 
     .wake-button {
@@ -605,8 +597,6 @@
       animation: voicePulse 520ms ease-in-out infinite;
     }
 
-    .spell-button:hover,
-    .mistake-button:hover,
     .wake-button:hover,
     .listen-button:hover,
     .voice-button:hover,
@@ -618,8 +608,6 @@
         0 0.9rem 1.8rem rgba(0, 0, 0, 0.26);
     }
 
-    .spell-button:disabled,
-    .mistake-button:disabled,
     .wake-button:disabled,
     .listen-button:disabled,
     .voice-button:disabled,
@@ -634,32 +622,13 @@
       color: rgba(255, 239, 205, 0.76);
       text-align: center;
       font-size: clamp(0.88rem, 2vw, 1rem);
-    }
-
-    .install-note {
-      display: none;
-      position: relative;
-      z-index: 1;
-      margin: 0;
-      padding: 0.75rem 0.9rem;
-      border: 1px solid rgba(var(--cyan), 0.26);
+      padding: 0.72rem 0.9rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 10px;
-      color: rgba(224, 250, 255, 0.86);
-      background: rgba(10, 16, 20, 0.56);
-      font-size: 0.88rem;
-      line-height: 1.45;
-      text-align: center;
-    }
-
-    body.show-ios-note .install-note {
-      display: block;
-    }
-
-    .voice-mode {
-      min-height: 1.1rem;
-      color: rgba(255, 239, 205, 0.58);
-      text-align: center;
-      font-size: 0.78rem;
+      background: rgba(255, 255, 255, 0.055);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(14px) saturate(1.2);
+      -webkit-backdrop-filter: blur(14px) saturate(1.2);
     }
 
     body.is-speaking .status {
@@ -776,8 +745,6 @@
         grid-template-columns: 1fr;
       }
 
-      .spell-button,
-      .mistake-button,
       .wake-button,
       .listen-button,
       .voice-button,
@@ -837,13 +804,9 @@
             <button class="listen-button" id="listenButton" type="button">试听 cape 发音</button>
             <button class="wake-button" id="wakeButton" type="button">唤醒紫水晶 e</button>
             <button class="voice-button" id="voiceButton" type="button" disabled>开启语音检测</button>
-            <button class="spell-button" id="successButton" type="button" disabled>模拟准确发音</button>
-            <button class="mistake-button" id="missButton" type="button" disabled>模拟发音失误</button>
             <button class="reset-button" id="resetButton" type="button" disabled>重置工坊</button>
           </div>
 
-          <p class="install-note" id="installNote">iPhone 使用建议：请通过 HTTPS 链接在 Safari 打开，并使用“分享”里的“添加到主屏幕”。真实语音检测若在 iOS 上受限，会自动保留模拟按钮作为备用。</p>
-          <div class="voice-mode" id="voiceMode">语音模式检测中...</div>
           <div class="status" id="status">当前形态：cap。点击紫水晶或唤醒按钮，让 Magic E 腾出位置。</div>
         </div>
       </div>
@@ -860,12 +823,8 @@
     const listenButton = document.getElementById("listenButton");
     const wakeButton = document.getElementById("wakeButton");
     const voiceButton = document.getElementById("voiceButton");
-    const successButton = document.getElementById("successButton");
-    const missButton = document.getElementById("missButton");
     const resetButton = document.getElementById("resetButton");
     const status = document.getElementById("status");
-    const installNote = document.getElementById("installNote");
-    const voiceMode = document.getElementById("voiceMode");
     const meterLabel = document.getElementById("meterLabel");
     const arcMain = document.getElementById("arcMain");
     const arcFringePath = document.getElementById("arcFringePath");
@@ -875,10 +834,6 @@
     const leak = document.getElementById("leak");
     const SpeechRecognitionApi = window.SpeechRecognition || window.webkitSpeechRecognition;
     const TRANSCRIBE_ENDPOINT = window.MAGIC_E_TRANSCRIBE_ENDPOINT || "";
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
-      || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    const isSafari = /^((?!chrome|android|crios|fxios|edgios).)*safari/i.test(navigator.userAgent);
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
     const isSecureOrigin = window.isSecureContext || location.hostname === "localhost" || location.hostname === "127.0.0.1";
 
     const state = {
@@ -916,8 +871,6 @@
       listenButton.disabled = !("speechSynthesis" in window) || state.checking;
       wakeButton.disabled = state.awake;
       voiceButton.disabled = !hasVoicePath() || !state.awake || state.stable || state.checking;
-      successButton.disabled = !state.awake || state.stable || state.checking;
-      missButton.disabled = !state.awake || state.stable || state.checking;
       resetButton.disabled = !state.stable;
     }
 
@@ -926,33 +879,7 @@
     }
 
     function updateEnvironmentMessaging() {
-      const notes = [];
-      if (isIOS) {
-        body.classList.add("show-ios-note");
-        if (!isSafari) {
-          notes.push("iOS 上请优先用 Safari 打开。");
-        }
-        if (!isStandalone) {
-          notes.push("可通过分享菜单添加到主屏幕。");
-        }
-      }
-      if (!isSecureOrigin) {
-        notes.push("麦克风需要 HTTPS 或 localhost。");
-      }
-
-      if (TRANSCRIBE_ENDPOINT) {
-        voiceMode.textContent = "语音模式：后端转写优先，浏览器识别备用。";
-      } else if (SpeechRecognitionApi) {
-        voiceMode.textContent = isIOS
-          ? "语音模式：iOS 浏览器内置识别，若失败请改用 HTTPS 部署或后端转写。"
-          : "语音模式：浏览器内置 Web Speech 识别。";
-      } else {
-        voiceMode.textContent = "语音模式：当前浏览器无内置识别；请使用模拟按钮，或配置后端转写端点。";
-      }
-
-      if (notes.length) {
-        installNote.textContent = `${installNote.textContent} ${notes.join(" ")}`;
-      }
+      voiceButton.title = hasVoicePath() ? "说出 cape，让魔力流向元音 a。" : "请稍后再试。";
     }
 
     function updateEnergyVisuals() {
@@ -986,13 +913,13 @@
       if (state.statusOverride) {
         status.textContent = state.statusOverride;
       } else if (state.stable) {
-        status.textContent = "炼金转化完成：cape 稳定成形，a 已永久点亮为黄金。";
+        status.textContent = "炼金转化完成：cape 稳定成形。";
       } else if (!state.awake) {
         status.textContent = "当前形态：cap。点击紫水晶或唤醒按钮，让 Magic E 腾出位置。";
       } else if (state.hits === 0) {
-        status.textContent = "Magic E 已醒来。连续三次准确发音才能完成炼金转化。";
+        status.textContent = "Magic E 已醒来。连续三次说出 cape。";
       } else {
-        status.textContent = `连续命中 ${state.hits} 次。保持准确，能量正在跨过 p 击中 a。`;
+        status.textContent = `发音能量已吸收 ${state.hits} 次。`;
       }
 
       updateButtonStates();
@@ -1134,7 +1061,7 @@
 
     function speakCorrectWord() {
       if (!("speechSynthesis" in window)) {
-        setStatus("当前浏览器不支持语音合成，无法试听。");
+        setStatus("暂时听不到声音，请看着 cape 再试一次。");
         updateEnergyVisuals();
         return;
       }
@@ -1155,7 +1082,7 @@
       state.speaking = true;
       body.classList.add("is-speaking");
       listenButton.classList.add("is-speaking");
-      setStatus("正在试听正确发音：cape。");
+      setStatus("听一听：cape。");
       updateEnergyVisuals();
 
       const finish = () => {
@@ -1170,7 +1097,7 @@
         state.speaking = false;
         body.classList.remove("is-speaking");
         listenButton.classList.remove("is-speaking");
-        setStatus("试听播放失败，浏览器可能阻止了语音合成。");
+        setStatus("暂时听不到声音，请看着 cape 再试一次。");
         updateEnergyVisuals();
       };
 
@@ -1183,12 +1110,36 @@
 
     function scoreTranscript(transcript, confidence) {
       const normalized = normalizeTranscript(transcript);
-      const compact = normalized.replace(/\s+/g, "");
-      const soundsLikeCape = normalized === "cape"
-        || compact === "cape"
-        || normalized.split(/\s+/).includes("cape")
-        || compact.includes("cape");
-      const confidentEnough = typeof confidence !== "number" || confidence === 0 || confidence >= 0.35;
+      const compact = normalized.replace(/[\s'-]+/g, "");
+      const words = normalized.split(/\s+/).filter(Boolean);
+      const beginnerMatches = new Set([
+        "cape",
+        "cap",
+        "cake",
+        "keep",
+        "keip",
+        "kape",
+        "cayp",
+        "kayp",
+        "caip",
+        "kaip",
+        "capes",
+        "caked"
+      ]);
+      const looksClose = compact.startsWith("cap")
+        || compact.startsWith("cape")
+        || compact.startsWith("kape")
+        || compact.startsWith("kayp")
+        || compact.startsWith("cayp")
+        || compact.startsWith("cake")
+        || compact.startsWith("keep")
+        || compact.includes("cape")
+        || compact.includes("kape")
+        || compact.includes("kayp");
+      const soundsLikeCape = beginnerMatches.has(compact)
+        || words.some((word) => beginnerMatches.has(word))
+        || looksClose;
+      const confidentEnough = typeof confidence !== "number" || confidence === 0 || confidence >= 0.15;
       return { normalized, hit: soundsLikeCape && confidentEnough };
     }
 
@@ -1197,17 +1148,17 @@
       if (score.hit) {
         registerHit();
         setStatus(state.stable
-          ? `检测结果：${score.normalized || transcript}，发音准确。炼金转化完成。`
-          : `检测结果：${score.normalized || transcript}，发音准确。`);
+          ? "炼金转化完成：cape 稳定成形。"
+          : "发音能量已吸收。");
       } else {
         registerMiss();
-        setStatus(`检测结果：${score.normalized || transcript || "未识别"}，未命中 cape，能量泄露。`);
+        setStatus("再试一次，让声音更接近 cape。");
       }
     }
 
     function startVoiceCheck() {
       if (!hasVoicePath()) {
-        setStatus("当前浏览器不支持内置语音识别；请使用模拟按钮，或部署后端转写端点。");
+        setStatus("没有吸收到清晰的声音，请再试一次。");
         updateEnergyVisuals();
         return;
       }
@@ -1227,7 +1178,7 @@
       state.checking = true;
       body.classList.add("is-checking");
       voiceButton.classList.add("is-checking");
-      setStatus("正在录音：请说 cape。");
+      setStatus("请说 cape。");
       updateEnergyVisuals();
 
       try {
@@ -1257,14 +1208,14 @@
             if (typeof result.hit === "boolean") {
               result.hit ? registerHit() : registerMiss();
               setStatus(result.hit
-                ? `检测结果：${result.transcript || "cape"}，发音准确。`
-                : `检测结果：${result.transcript || "未识别"}，未命中 cape，能量泄露。`);
+                ? "发音能量已吸收。"
+                : "再试一次，让声音更接近 cape。");
             } else {
               applyVoiceResult(result.transcript || "", result.confidence);
             }
           } catch (error) {
             registerMiss();
-            setStatus("后端语音转写失败，请检查 HTTPS/API 配置，能量泄露。");
+            setStatus("没有吸收到清晰的声音，请再试一次。");
           } finally {
             state.checking = false;
             state.mediaRecorder = null;
@@ -1287,7 +1238,7 @@
         body.classList.remove("is-checking");
         voiceButton.classList.remove("is-checking");
         registerMiss();
-        setStatus(isSecureOrigin ? "麦克风权限被拒绝或不可用，能量泄露。" : "麦克风需要 HTTPS 或 localhost，能量泄露。");
+        setStatus("没有吸收到清晰的声音，请再试一次。");
         updateEnergyVisuals();
       }
     }
@@ -1298,7 +1249,7 @@
       state.checking = true;
       body.classList.add("is-checking");
       voiceButton.classList.add("is-checking");
-      setStatus("正在聆听：请说 cape。");
+      setStatus("请说 cape。");
       updateEnergyVisuals();
 
       let handled = false;
@@ -1322,7 +1273,7 @@
         if (!best) {
           handled = true;
           registerMiss();
-          setStatus("没有检测到清晰语音，能量泄露。");
+          setStatus("没有吸收到清晰的声音，请再试一次。");
           return;
         }
 
@@ -1334,18 +1285,13 @@
       recognition.onerror = (event) => {
         handled = true;
         registerMiss();
-        const reason = event.error === "service-not-allowed"
-          ? "浏览器语音服务不可用；iOS 请使用 HTTPS Safari，或改接后端转写"
-          : event.error === "not-allowed"
-            ? "麦克风权限被拒绝"
-            : `语音检测中断：${event.error}`;
-        setStatus(`${reason}，能量泄露。`);
+        setStatus("没有吸收到清晰的声音，请再试一次。");
       };
 
       recognition.onend = () => {
         if (!handled && state.awake && !state.stable) {
           registerMiss();
-          setStatus("语音检测结束但没有识别结果，能量泄露。");
+          setStatus("没有吸收到清晰的声音，请再试一次。");
         }
         state.checking = false;
         state.recognition = null;
@@ -1361,7 +1307,7 @@
         state.recognition = null;
         body.classList.remove("is-checking");
         voiceButton.classList.remove("is-checking");
-        setStatus("语音检测无法启动，请稍后重试或使用模拟按钮。");
+        setStatus("没有吸收到清晰的声音，请再试一次。");
         updateEnergyVisuals();
       }
     }
@@ -1415,10 +1361,10 @@
     if ("speechSynthesis" in window) {
       window.speechSynthesis.addEventListener("voiceschanged", updateButtonStates);
     } else {
-      listenButton.title = "当前浏览器不支持 Speech Synthesis。";
+      listenButton.title = "请稍后再试。";
     }
     if (!hasVoicePath()) {
-      voiceButton.title = "当前浏览器不支持 Web Speech Recognition，且未配置后端转写。";
+      voiceButton.title = "请稍后再试。";
     }
 
     updateEnvironmentMessaging();
@@ -1426,8 +1372,6 @@
     listenButton.addEventListener("click", speakCorrectWord);
     wakeButton.addEventListener("click", awakenMagicE);
     voiceButton.addEventListener("click", startVoiceCheck);
-    successButton.addEventListener("click", registerHit);
-    missButton.addEventListener("click", registerMiss);
     resetButton.addEventListener("click", resetWorkshop);
     window.addEventListener("resize", syncArcToLetters);
     if ("serviceWorker" in navigator && isSecureOrigin) {
