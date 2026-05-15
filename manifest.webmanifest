@@ -1,0 +1,25 @@
+{
+  "name": "Magic E Alchemy Workshop",
+  "short_name": "Magic E",
+  "description": "A mobile-friendly Magic E phonics alchemy prototype.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#100d0c",
+  "theme_color": "#2d1836",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./apple-touch-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
