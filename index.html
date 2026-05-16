@@ -3,7 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Magic E Alchemy Workshop Pro</title>
+  <title>Magic E Alchemy Workshop</title>
+  <meta name="description" content="Magic E phonics alchemy workshop for mobile and classroom demos.">
+  <meta name="theme-color" content="#2d1836">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Magic E">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
   <style>
     :root {
       --energy: 0;
@@ -33,6 +41,7 @@
       --vowel-before-opacity: 0.5;
       --listen-pulse: 0;
       --checking-pulse: 0;
+      --charge-flash: 0;
       --letter-size: clamp(4.25rem, 12vw, 10.5rem);
       --basalt: #222324;
       --basalt-edge: #0d0f10;
@@ -47,360 +56,1465 @@
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      margin: 0; min-height: 100vh; color: #f6ead2;
-      background: radial-gradient(circle at 16% 14%, rgba(150, 73, 255, 0.18), transparent 18rem),
-                  radial-gradient(circle at 79% 16%, rgba(255, 183, 76, 0.16), transparent 20rem),
-                  linear-gradient(135deg, rgba(54, 31, 19, 0.78), rgba(12, 10, 14, 0.92) 46%, rgba(24, 16, 12, 0.96)), #100d0c;
+      margin: 0;
+      min-height: 100vh;
+      color: #f6ead2;
+      background:
+        radial-gradient(circle at 16% 14%, rgba(150, 73, 255, 0.18), transparent 18rem),
+        radial-gradient(circle at 79% 16%, rgba(255, 183, 76, 0.16), transparent 20rem),
+        linear-gradient(135deg, rgba(54, 31, 19, 0.78), rgba(12, 10, 14, 0.92) 46%, rgba(24, 16, 12, 0.96)),
+        #100d0c;
       overflow-x: hidden;
     }
 
-    /* 顶部教学引导区域 */
-    .tutorial-header {
+    body::before,
+    body::after {
+      content: "";
       position: fixed;
-      top: 2rem;
-      left: 50%;
-      transform: translateX(-50%);
-      width: min(90%, 600px);
-      z-index: 100;
-      text-align: center;
+      inset: 0;
       pointer-events: none;
     }
 
-    .guide-bubble {
-      background: rgba(0, 0, 0, 0.6);
-      border: 1px solid rgba(var(--gold), 0.5);
-      padding: 1rem 1.5rem;
-      border-radius: 1rem;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 15px rgba(var(--gold), 0.1);
-      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    body::before {
+      background:
+        repeating-linear-gradient(6deg, rgba(255, 232, 174, 0.035) 0 1px, transparent 1px 7px),
+        repeating-linear-gradient(94deg, rgba(68, 42, 19, 0.12) 0 1px, transparent 1px 11px);
+      mix-blend-mode: overlay;
+      opacity: 0.66;
     }
 
-    .guide-bubble h2 {
-      margin: 0 0 0.5rem 0;
-      font-size: 1.2rem;
-      color: rgb(var(--gold-bright));
-      text-transform: uppercase;
-      letter-spacing: 2px;
+    body::after {
+      background:
+        radial-gradient(circle at 11% 24%, rgba(var(--gold), 0.12) 0 0.18rem, transparent 0.22rem),
+        radial-gradient(circle at 92% 31%, rgba(var(--violet), 0.13) 0 0.2rem, transparent 0.25rem),
+        radial-gradient(circle at 23% 81%, rgba(var(--cyan), 0.1) 0 0.16rem, transparent 0.21rem),
+        radial-gradient(circle at 76% 77%, rgba(var(--gold), 0.1) 0 0.15rem, transparent 0.2rem);
+      opacity: 0.95;
+      filter: drop-shadow(0 0 0.45rem rgba(var(--gold), 0.25));
     }
 
-    .guide-bubble p {
-      margin: 0;
-      font-size: 1rem;
-      line-height: 1.4;
-      color: #fff4dc;
+    main {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: max(clamp(1rem, 3.5vw, 2.8rem), env(safe-area-inset-top)) max(clamp(1rem, 3.5vw, 2.8rem), env(safe-area-inset-right)) max(clamp(1rem, 3.5vw, 2.8rem), env(safe-area-inset-bottom)) max(clamp(1rem, 3.5vw, 2.8rem), env(safe-area-inset-left));
+      -webkit-tap-highlight-color: transparent;
     }
 
-    /* Magic E 按钮激活状态 */
-    .magic-e:active {
-      transform: scale(0.92) !important;
-      filter: brightness(1.5) !important;
-      box-shadow: 0 0 3rem rgba(var(--violet), 1) !important;
+    .workshop {
+      width: min(1100px, 94vw);
+      display: grid;
+      gap: clamp(1.1rem, 3vw, 2rem);
     }
 
-    /* 能量槽高亮爆发效果 */
-    .mana-fill {
+    .table {
       position: relative;
+      min-height: clamp(26rem, 58vw, 42rem);
+      display: grid;
+      place-items: center;
+      padding: clamp(5rem, 10vw, 8rem) clamp(0.5rem, 2vw, 2rem) clamp(2rem, 5vw, 4rem);
+      border-radius: 10px;
+      overflow: hidden;
+      isolation: isolate;
+      background:
+        radial-gradient(ellipse at center, rgba(255, 198, 95, 0.08), transparent 48%),
+        linear-gradient(145deg, rgba(31, 18, 12, 0.88), rgba(9, 8, 10, 0.9) 66%);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 224, 166, 0.11),
+        inset 0 0 5rem rgba(0, 0, 0, 0.44),
+        0 1.5rem 5rem rgba(0, 0, 0, 0.38);
+    }
+
+    .table::before {
+      content: "";
+      position: absolute;
+      inset: 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(var(--gold), 0.16);
+      background:
+        radial-gradient(circle at 50% 50%, transparent 0 24%, rgba(var(--gold), 0.08) 24.2% 24.5%, transparent 24.8%),
+        radial-gradient(circle at 50% 50%, transparent 0 39%, rgba(var(--violet), 0.07) 39.2% 39.55%, transparent 39.9%),
+        conic-gradient(from 12deg, transparent 0 7%, rgba(var(--gold), 0.07) 7.3% 7.7%, transparent 8% 19%, rgba(var(--violet), 0.08) 19.2% 19.55%, transparent 20% 100%);
+      opacity: 0.88;
+      mask-image: radial-gradient(ellipse at center, black, transparent 79%);
+      z-index: -2;
+    }
+
+    .table::after {
+      content: "ᚠ   ᚱ   ᚢ   ᚾ   ᛖ   ᚷ   ᚨ   ᛟ";
+      position: absolute;
+      top: 1.3rem;
+      left: 50%;
+      translate: -50% 0;
+      width: min(78%, 760px);
+      color: rgba(var(--gold), 0.38);
+      font-family: Georgia, serif;
+      font-size: clamp(0.8rem, 2vw, 1.35rem);
+      letter-spacing: 0.8rem;
+      text-align: center;
+      text-shadow: 0 0 0.9rem rgba(var(--gold), 0.45);
+      animation: runeBreath 4.8s ease-in-out infinite;
+      white-space: nowrap;
       overflow: hidden;
     }
-    
-    .mana-fill.surge {
-      animation: energySurge 0.8s ease-out;
+
+    .word-stage {
+      position: relative;
+      width: min(100%, 900px);
+      min-height: clamp(13rem, 25vw, 19rem);
+      display: grid;
+      place-items: center;
     }
 
-    @keyframes energySurge {
-      0% { filter: brightness(1) saturate(1); box-shadow: 0 0 1.6rem rgba(var(--violet), 0.54); }
-      50% { filter: brightness(2) saturate(2); box-shadow: 0 0 4rem rgba(var(--gold-bright), 1); }
-      100% { filter: brightness(1) saturate(1); box-shadow: 0 0 1.6rem rgba(var(--violet), 0.54); }
+    .word {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: clamp(0.08rem, 0.8vw, 0.45rem);
+      transition: gap 760ms cubic-bezier(.18, .9, .2, 1);
+      user-select: none;
     }
 
-    main { min-height: 100vh; display: grid; place-items: center; padding: 2rem; }
-    .workshop { width: min(1100px, 94vw); display: grid; gap: 2rem; }
-    .table { position: relative; min-height: 40rem; display: grid; place-items: center; border-radius: 10px; background: radial-gradient(ellipse at center, rgba(255, 198, 95, 0.08), transparent 48%), linear-gradient(145deg, rgba(31, 18, 12, 0.88), rgba(9, 8, 10, 0.9) 66%); box-shadow: inset 0 0 0 1px rgba(255, 224, 166, 0.11), 0 1.5rem 5rem rgba(0, 0, 0, 0.38); isolation: isolate; }
-    .word-stage { position: relative; width: 100%; display: grid; place-items: center; }
-    .word { display: flex; align-items: flex-end; gap: 0.5rem; transition: gap 0.7s; }
-    body.is-awake .word { gap: 1.5rem; }
-    .letter { width: 0.76em; height: 1.04em; font-size: var(--letter-size); font-family: Georgia, serif; font-weight: 900; display: grid; place-items: center; transition: all 0.4s; }
-    .basalt { background: linear-gradient(145deg, var(--basalt-light), var(--basalt) 44%, var(--basalt-edge)); border-radius: 0.16em; }
-    .vowel { background: linear-gradient(145deg, #402016, #1a0d0a 64%, #090605); color: #24100a; filter: var(--vowel-filter); }
-    body.is-stable .vowel { color: #4f3008; background: linear-gradient(145deg, #fff0aa, #f0b63d 45%, #86550f); box-shadow: 0 0 2rem rgba(var(--gold), 0.85); }
-    .magic-e { cursor: pointer; opacity: 0; width: 0; background: rgba(var(--violet), 0.2); border: 1px solid rgba(var(--violet), 0.3); border-radius: 0.16em; }
-    body.is-awake .magic-e { opacity: 1; width: 0.76em; animation: crystalPulse 1.8s infinite; }
-    .control-panel { padding: 1.5rem; background: rgba(8, 8, 12, 0.5); backdrop-filter: blur(20px); border: 1px solid rgba(var(--gold), 0.3); border-radius: 14px; }
-    .mana-row { display: grid; grid-template-columns: auto 1fr auto; gap: 1rem; align-items: center; }
-    .mana-meter { height: 3.5rem; background: #000; border-radius: 2rem; border: 1px solid rgba(var(--gold), 0.2); padding: 0.4rem; }
-    .mana-fill { height: 100%; width: var(--energy-fill); background: linear-gradient(90deg, rgba(var(--violet), 1), rgba(var(--cyan), 1), rgba(var(--gold-bright), 1)); border-radius: 2rem; transition: width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
-    .status { margin-top: 1rem; text-align: center; color: rgba(var(--gold), 0.8); }
-    .energy-svg { position: absolute; inset: 0; pointer-events: none; }
-    .energy-arc { fill: none; stroke: rgba(var(--violet), 0.8); stroke-width: var(--arc-width); }
-    @keyframes crystalPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    body.is-awake .word {
+      gap: clamp(0.58rem, 2vw, 1.4rem);
+    }
+
+    .letter {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 0.76em;
+      height: 1.04em;
+      border: 0;
+      border-radius: 0.16em;
+      padding: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: var(--letter-size);
+      font-weight: 900;
+      line-height: 0.85;
+      letter-spacing: 0;
+      color: #ede6d8;
+      transform-style: preserve-3d;
+      transition:
+        opacity 520ms ease,
+        width 720ms cubic-bezier(.18, .9, .2, 1),
+        transform 280ms ease,
+        filter 280ms ease,
+        box-shadow 280ms ease,
+        background 360ms ease,
+        color 360ms ease,
+        border-radius 260ms ease;
+    }
+
+    .letter::before,
+    .letter::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    .glyph {
+      position: relative;
+      z-index: 2;
+      transform: translateY(-0.035em);
+      text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+    }
+
+    .basalt {
+      background:
+        radial-gradient(circle at 25% 22%, rgba(255, 255, 255, 0.12), transparent 18%),
+        repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.055) 0 1px, transparent 1px 9px),
+        linear-gradient(145deg, var(--basalt-light), var(--basalt) 44%, var(--basalt-edge));
+      box-shadow:
+        inset 0.08em 0.08em 0.16em rgba(255, 255, 255, 0.16),
+        inset -0.1em -0.12em 0.18em rgba(0, 0, 0, 0.76),
+        0 0.28em 0.42em rgba(0, 0, 0, 0.45);
+    }
+
+    .basalt::before {
+      background:
+        linear-gradient(122deg, transparent 20%, rgba(var(--gold), 0.34) 20.8% 21.8%, transparent 22.5% 58%, rgba(var(--gold), 0.22) 58.7% 59.7%, transparent 60.4%),
+        radial-gradient(circle at 54% 53%, rgba(var(--gold), 0.22) 0 0.055em, transparent 0.065em);
+      opacity: 0.42;
+      filter: drop-shadow(0 0 0.14rem rgba(var(--gold), 0.25));
+    }
+
+    .basalt.p {
+      transform: translate(var(--p-jitter-x), var(--p-jitter-y)) rotate(var(--p-rotate));
+    }
+
+    .vowel {
+      color: #24100a;
+      border-radius: var(--a-radius);
+      transform: scale(var(--a-scale));
+      background:
+        radial-gradient(circle at 50% 48%, rgba(var(--lava), var(--lava-core-alpha)) 0 26%, transparent 43%),
+        radial-gradient(circle at 40% 34%, rgba(255, 170, 72, var(--lava-accent-alpha)), transparent 30%),
+        linear-gradient(145deg, #402016, #1a0d0a 64%, #090605);
+      box-shadow:
+        inset 0.08em 0.08em 0.18em rgba(255, 181, 90, 0.18),
+        inset -0.1em -0.12em 0.2em rgba(0, 0, 0, 0.78),
+        0 0 var(--lava-glow-size) rgba(var(--lava), var(--lava-glow-alpha)),
+        0 0.28em 0.42em rgba(0, 0, 0, 0.45);
+      filter: var(--vowel-filter);
+    }
+
+    .vowel::before {
+      background:
+        radial-gradient(circle at 50% 50%, transparent 0 28%, rgba(255, 107, 44, 0.26) 29% 31%, transparent 32%),
+        linear-gradient(102deg, transparent 16%, rgba(255, 119, 52, 0.28) 17% 18%, transparent 19% 58%, rgba(255, 177, 81, 0.24) 59% 60%, transparent 61%);
+      opacity: var(--vowel-before-opacity);
+      mix-blend-mode: screen;
+    }
+
+    body.is-stable .vowel {
+      color: #4f3008;
+      background:
+        radial-gradient(circle at 42% 28%, rgba(255, 255, 255, 0.68), transparent 17%),
+        radial-gradient(circle at 50% 53%, rgba(var(--gold-bright), 0.82), rgba(var(--gold), 0.6) 38%, transparent 58%),
+        linear-gradient(145deg, #fff0aa, #f0b63d 45%, #86550f);
+      box-shadow:
+        inset 0.08em 0.08em 0.16em rgba(255, 255, 255, 0.56),
+        inset -0.09em -0.11em 0.2em rgba(78, 46, 5, 0.42),
+        0 0 2rem rgba(var(--gold), 0.85),
+        0 0 5rem rgba(var(--gold), 0.38),
+        0 0.28em 0.42em rgba(0, 0, 0, 0.45);
+      filter: saturate(1.35) brightness(1.08);
+    }
+
+    body.is-stable .vowel::after {
+      inset: -0.08em;
+      border: 1px solid rgba(255, 242, 175, 0.72);
+      box-shadow: inset 0 0 0.5em rgba(255, 246, 193, 0.58);
+      animation: goldSeal 2.6s ease-in-out infinite;
+    }
+
+    .magic-e {
+      appearance: none;
+      cursor: pointer;
+      overflow: hidden;
+      width: 0;
+      opacity: 0;
+      pointer-events: none;
+      color: rgba(232, 213, 255, 0.46);
+      background:
+        radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.28), rgba(var(--violet), 0.17) 34%, rgba(91, 44, 131, 0.1) 65%, rgba(255, 255, 255, 0.04)),
+        linear-gradient(145deg, rgba(218, 201, 255, 0.33), rgba(92, 55, 126, 0.12));
+      border: 1px solid rgba(228, 211, 255, 0.28);
+      box-shadow:
+        inset 0.07em 0.07em 0.16em rgba(255, 255, 255, 0.3),
+        inset -0.08em -0.1em 0.18em rgba(59, 23, 92, 0.55),
+        0 0 var(--crystal-glow) rgba(var(--violet), 0.7);
+      transform: scale(var(--crystal-scale));
+    }
+
+    .magic-e::before {
+      background:
+        linear-gradient(116deg, transparent 10%, rgba(255, 255, 255, 0.52) 11% 12%, transparent 13% 45%, rgba(255, 255, 255, 0.28) 46% 47%, transparent 48%),
+        conic-gradient(from 20deg, transparent, rgba(255, 255, 255, 0.26), transparent 26%, rgba(var(--violet), 0.26), transparent 58%);
+      opacity: 0.58;
+    }
+
+    .magic-e::after {
+      inset: 19%;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.32);
+      box-shadow: 0 0 1.4rem rgba(var(--violet), 0.45);
+      opacity: 0.48;
+    }
+
+    body.is-awake .magic-e {
+      width: 0.76em;
+      opacity: 1;
+      pointer-events: auto;
+      color: #f6eaff;
+      --crystal-glow: 1.6rem;
+      animation: crystalPulse 1.8s ease-in-out infinite;
+    }
+
+    body.is-awake .magic-e::before {
+      animation: crystalFacet 5s linear infinite;
+      opacity: 0.86;
+    }
+
+    body.is-awake:not(.is-stable) .magic-e:not(:disabled) {
+      border-color: rgba(var(--cyan), 0.78);
+      box-shadow:
+        inset 0.07em 0.07em 0.16em rgba(255, 255, 255, 0.3),
+        inset -0.08em -0.1em 0.18em rgba(59, 23, 92, 0.55),
+        0 0 1.8rem rgba(var(--violet), 0.8),
+        0 0 3.1rem rgba(var(--cyan), 0.34);
+    }
+
+    .magic-e.is-checking {
+      animation: crystalPulse 520ms ease-in-out infinite, voicePulse 520ms ease-in-out infinite;
+    }
+
+    .magic-e:focus-visible,
+    .wake-button:focus-visible,
+    .listen-button:focus-visible,
+    .reset-button:focus-visible {
+      outline: 2px solid rgba(var(--gold-bright), 0.88);
+      outline-offset: 0.18rem;
+    }
+
+    .magic-e.is-cracking .crack {
+      animation: crackFlash 680ms ease-out forwards;
+    }
+
+    .crack {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .crack span {
+      position: absolute;
+      left: 52%;
+      top: 46%;
+      width: 2px;
+      height: 42%;
+      border-radius: 999px;
+      transform-origin: 50% 0;
+      background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.96), rgba(var(--cyan), 0.86), transparent);
+      box-shadow: 0 0 1rem rgba(var(--cyan), 0.8);
+    }
+
+    .crack span:nth-child(1) { transform: rotate(-29deg) translateY(-20%); }
+    .crack span:nth-child(2) { height: 33%; transform: rotate(21deg) translateY(-10%); }
+    .crack span:nth-child(3) { height: 26%; transform: rotate(66deg) translateY(-8%); }
+
+    .energy-svg {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+      opacity: var(--arc-alpha);
+      transition: opacity 240ms ease;
+    }
+
+    .energy-arc {
+      fill: none;
+      stroke: rgba(var(--violet), 0.92);
+      stroke-width: var(--arc-width);
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 18 11;
+      filter: url(#arcWarp);
+      animation: arcDash 0.7s linear infinite;
+    }
+
+    .energy-arc.secondary {
+      stroke: rgba(var(--cyan), var(--arc-secondary-alpha));
+      stroke-width: var(--arc-secondary-width);
+      stroke-dasharray: 3 13;
+      animation-duration: 0.36s;
+      filter: url(#arcFringe);
+    }
+
+    body.is-stable .energy-svg {
+      opacity: 0;
+    }
+
+    .control-panel {
+      position: relative;
+      width: min(860px, 100%);
+      justify-self: center;
+      display: grid;
+      gap: 1rem;
+      padding: clamp(1rem, 3vw, 1.5rem);
+      border-radius: 14px;
+      border: 1px solid rgba(var(--gold), 0.28);
+      background:
+        linear-gradient(145deg, rgba(24, 22, 28, 0.9), rgba(3, 3, 6, 0.92)),
+        var(--obsidian);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+        inset 0 0 2.8rem rgba(var(--violet), 0.06),
+        0 1rem 3rem rgba(0, 0, 0, 0.4);
+      overflow: hidden;
+    }
+
+    .control-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0.5rem;
+      border-radius: 11px;
+      border: 1px solid rgba(var(--gold), 0.24);
+      background:
+        linear-gradient(90deg, transparent 8%, rgba(var(--gold), 0.28) 8.5% 9%, transparent 9.5% 91%, rgba(var(--gold), 0.28) 91.5% 92%, transparent 92.5%),
+        radial-gradient(circle at 10% 50%, rgba(var(--gold), 0.2), transparent 9%),
+        radial-gradient(circle at 90% 50%, rgba(var(--gold), 0.2), transparent 9%);
+      pointer-events: none;
+      opacity: 0.72;
+    }
+
+    .panel-content {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .guide {
+      margin: 0;
+      padding: clamp(0.85rem, 2vw, 1.05rem) clamp(0.9rem, 2.6vw, 1.25rem);
+      border-radius: 10px;
+      border: 1px solid rgba(var(--gold-bright), 0.44);
+      color: #fff6df;
+      background:
+        linear-gradient(135deg, rgba(255, 235, 166, 0.13), rgba(119, 230, 255, 0.09)),
+        rgba(10, 9, 14, 0.72);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+        0 0 1.6rem rgba(var(--gold), 0.12);
+      font-size: clamp(0.98rem, 2.2vw, 1.18rem);
+      font-weight: 800;
+      line-height: 1.55;
+      text-align: center;
+    }
+
+    .guide strong {
+      color: rgb(var(--gold-bright));
+      font-weight: 900;
+    }
+
+    .mana-row {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: clamp(0.75rem, 2vw, 1.25rem);
+      align-items: center;
+    }
+
+    .orb {
+      width: clamp(3.6rem, 9vw, 5.3rem);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.92), rgba(var(--violet), 0.5) 19%, transparent 35%),
+        radial-gradient(circle at 50% 50%, rgba(var(--gold-bright), var(--listen-pulse)), transparent 58%),
+        radial-gradient(circle at 50% 50%, rgba(var(--cyan), var(--checking-pulse)), transparent 62%),
+        radial-gradient(circle at 50% 55%, rgba(var(--violet), var(--orb-core-alpha)), rgba(58, 22, 87, 0.72) 58%, rgba(9, 6, 14, 0.95));
+      border: 1px solid rgba(var(--violet), 0.52);
+      box-shadow:
+        inset -0.45rem -0.65rem 1.3rem rgba(0, 0, 0, 0.58),
+        inset 0.35rem 0.35rem 0.8rem rgba(255, 255, 255, 0.2),
+        0 0 var(--orb-shadow-size) rgba(var(--violet), var(--orb-shadow-alpha));
+    }
+
+    .mana-meter {
+      position: relative;
+      min-height: clamp(2.8rem, 7vw, 4.1rem);
+      border-radius: 999px;
+      border: 1px solid rgba(var(--gold), 0.3);
+      padding: 0.38rem;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.2)),
+        rgba(6, 5, 8, 0.8);
+      box-shadow:
+        inset 0 0 1rem rgba(0, 0, 0, 0.72),
+        0 0 1.2rem rgba(var(--gold), 0.08);
+      overflow: hidden;
+    }
+
+    .mana-meter::before {
+      content: "";
+      position: absolute;
+      inset: 0.24rem;
+      z-index: 2;
+      border-radius: inherit;
+      background:
+        radial-gradient(circle at var(--energy-fill) 50%, rgba(255, 255, 255, var(--charge-flash)), transparent 26%),
+        linear-gradient(90deg, transparent, rgba(255, 255, 255, calc(var(--charge-flash) * 0.74)), transparent);
+      filter: blur(0.35rem);
+      opacity: var(--charge-flash);
+      pointer-events: none;
+    }
+
+    .mana-fill {
+      width: var(--energy-fill);
+      height: 100%;
+      position: relative;
+      z-index: 1;
+      border-radius: inherit;
+      background:
+        linear-gradient(90deg, rgba(var(--violet), 0.92), rgba(var(--cyan), 0.82), rgba(var(--gold-bright), 0.96));
+      box-shadow:
+        inset 0 0 0.8rem rgba(255, 255, 255, 0.32),
+        0 0 1.6rem rgba(var(--violet), 0.54),
+        0 0 2.5rem rgba(var(--gold), 0.28);
+      transition: width 520ms cubic-bezier(.2, .8, .2, 1);
+    }
+
+    body.energy-flash .mana-fill {
+      animation: manaCharge 680ms ease-out;
+    }
+
+    .mana-meter::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      background:
+        linear-gradient(90deg, transparent 32.8%, rgba(8, 6, 12, 0.78) 33.1% 33.5%, transparent 33.8% 66.1%, rgba(8, 6, 12, 0.78) 66.4% 66.8%, transparent 67.1%),
+        repeating-linear-gradient(112deg, transparent 0 1rem, rgba(255, 255, 255, 0.08) 1rem 1.2rem);
+      pointer-events: none;
+    }
+
+    .meter-label {
+      color: rgba(255, 239, 205, 0.82);
+      font-size: clamp(0.86rem, 1.8vw, 1rem);
+      font-weight: 700;
+      text-align: right;
+      min-width: 8ch;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .spell-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: center;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .wake-button,
+    .listen-button,
+    .reset-button {
+      min-height: 2.75rem;
+      border-radius: 999px;
+      border: 1px solid rgba(var(--gold), 0.38);
+      padding: 0 1.1rem;
+      color: #fff4dc;
+      cursor: pointer;
+      background:
+        linear-gradient(145deg, rgba(255, 236, 190, 0.14), rgba(0, 0, 0, 0.28)),
+        rgba(18, 15, 20, 0.92);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 0.8rem 1.6rem rgba(0, 0, 0, 0.22);
+      transition: transform 160ms ease, border-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+    }
+
+    .wake-button {
+      border-color: rgba(var(--gold), 0.5);
+    }
+
+    .listen-button {
+      border-color: rgba(var(--gold-bright), 0.5);
+    }
+
+    .reset-button {
+      color: #fff1c3;
+      border-color: rgba(var(--gold), 0.62);
+      background:
+        linear-gradient(145deg, rgba(255, 229, 142, 0.2), rgba(73, 40, 6, 0.32)),
+        rgba(18, 15, 20, 0.92);
+    }
+
+    .listen-button.is-speaking,
+    body.is-speaking .orb {
+      animation: soundPulse 720ms ease-in-out infinite;
+    }
+
+    body.is-checking .orb {
+      animation: voicePulse 520ms ease-in-out infinite;
+    }
+
+    .wake-button:hover,
+    .listen-button:hover,
+    .reset-button:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        0 0 1.8rem rgba(var(--gold), 0.12),
+        0 0.9rem 1.8rem rgba(0, 0, 0, 0.26);
+    }
+
+    .wake-button:disabled,
+    .listen-button:disabled,
+    .reset-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+      transform: none;
+    }
+
+    .status {
+      min-height: 1.4rem;
+      color: rgba(255, 239, 205, 0.9);
+      text-align: center;
+      font-size: clamp(0.95rem, 2vw, 1.05rem);
+      font-weight: 700;
+    }
+
+    .install-note {
+      display: none;
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      padding: 0.75rem 0.9rem;
+      border: 1px solid rgba(var(--cyan), 0.26);
+      border-radius: 10px;
+      color: rgba(224, 250, 255, 0.86);
+      background: rgba(10, 16, 20, 0.56);
+      font-size: 0.88rem;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    body.show-ios-note .install-note {
+      display: block;
+    }
+
+    .voice-mode {
+      min-height: 1.1rem;
+      color: rgba(255, 239, 205, 0.58);
+      text-align: center;
+      font-size: 0.78rem;
+    }
+
+    body.is-speaking .status {
+      color: rgba(255, 240, 184, 0.95);
+      text-shadow: 0 0 1rem rgba(var(--gold), 0.34);
+    }
+
+    body.is-checking .status {
+      color: rgba(205, 246, 255, 0.96);
+      text-shadow: 0 0 1rem rgba(var(--cyan), 0.36);
+    }
+
+    .leak {
+      position: absolute;
+      left: 50%;
+      top: 53%;
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background: rgba(255, 104, 70, 0.84);
+      box-shadow: 0 0 1rem rgba(255, 104, 70, 0.7);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .leak.is-leaking {
+      animation: manaLeak 720ms ease-out forwards;
+    }
+
+    @keyframes arcDash {
+      to { stroke-dashoffset: -58; }
+    }
+
+    @keyframes runeBreath {
+      0%, 100% { opacity: 0.34; filter: brightness(0.8); }
+      50% { opacity: 0.76; filter: brightness(1.25); }
+    }
+
+    @keyframes crystalPulse {
+      0%, 100% { transform: scale(var(--crystal-scale)); }
+      50% { transform: scale(var(--crystal-pulse-scale)); }
+    }
+
+    @keyframes crystalFacet {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes crackFlash {
+      0% { opacity: 0; transform: scale(0.74); }
+      20% { opacity: 1; transform: scale(1); }
+      78% { opacity: 0.9; }
+      100% { opacity: 0; transform: scale(1.22); }
+    }
+
+    @keyframes goldSeal {
+      0%, 100% { opacity: 0.65; transform: scale(0.98); }
+      50% { opacity: 1; transform: scale(1.04); }
+    }
+
+    @keyframes manaLeak {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+      18% { opacity: 1; }
+      100% { opacity: 0; transform: translate(calc(-50% + 4rem), 4.8rem) scale(3.4); filter: blur(7px); }
+    }
+
+    @keyframes soundPulse {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.28) drop-shadow(0 0 1rem rgba(var(--gold), 0.42)); }
+    }
+
+    @keyframes voicePulse {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.22) drop-shadow(0 0 1rem rgba(var(--cyan), 0.44)); }
+    }
+
+    @keyframes manaCharge {
+      0% {
+        filter: brightness(1);
+        box-shadow:
+          inset 0 0 0.8rem rgba(255, 255, 255, 0.32),
+          0 0 1.6rem rgba(var(--violet), 0.54),
+          0 0 2.5rem rgba(var(--gold), 0.28);
+      }
+      42% {
+        filter: brightness(1.36) saturate(1.24);
+        box-shadow:
+          inset 0 0 1.1rem rgba(255, 255, 255, 0.58),
+          0 0 2rem rgba(var(--cyan), 0.72),
+          0 0 3.4rem rgba(var(--gold-bright), 0.54);
+      }
+      100% {
+        filter: brightness(1);
+        box-shadow:
+          inset 0 0 0.8rem rgba(255, 255, 255, 0.32),
+          0 0 1.6rem rgba(var(--violet), 0.54),
+          0 0 2.5rem rgba(var(--gold), 0.28);
+      }
+    }
+
+    @media (max-width: 700px) {
+      :root {
+        --letter-size: clamp(3.8rem, 18vw, 7rem);
+      }
+
+      .table {
+        min-height: 31rem;
+        padding-top: 5.5rem;
+      }
+
+      .letter {
+        width: 0.7em;
+      }
+
+      body.is-awake .magic-e {
+        width: 0.7em;
+      }
+
+      .mana-row {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+
+      .mana-meter {
+        width: 100%;
+      }
+
+      .meter-label {
+        text-align: center;
+      }
+
+      .table::after {
+        letter-spacing: 0.38rem;
+      }
+
+      .spell-controls {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .wake-button,
+      .listen-button,
+      .reset-button {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
-
-  <header class="tutorial-header">
-    <div class="guide-bubble" id="mainGuide">
-      <h2 id="guideTitle">炼金学徒，欢迎</h2>
-      <p id="guideText">点击单词末尾的紫水晶 <b>e</b>，开启 Magic E 的转化仪式。</p>
-    </div>
-  </header>
-
   <main>
-    <section class="workshop">
+    <section class="workshop" aria-label="Magic E alchemy workshop prototype">
       <div id="table" class="table">
         <div class="word-stage" id="wordStage">
-          <svg id="energySvg" class="energy-svg">
+          <svg id="energySvg" class="energy-svg" aria-hidden="true">
+            <defs>
+              <filter id="arcWarp" x="-35%" y="-80%" width="170%" height="260%">
+                <feTurbulence id="arcNoise" type="fractalNoise" baseFrequency="0.018 0.052" numOctaves="2" seed="5"></feTurbulence>
+                <feDisplacementMap id="arcDisplace" in="SourceGraphic" scale="0" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap>
+                <feGaussianBlur id="arcBlur" stdDeviation="0.15"></feGaussianBlur>
+              </filter>
+              <filter id="arcFringe" x="-35%" y="-80%" width="170%" height="260%">
+                <feTurbulence type="turbulence" baseFrequency="0.04 0.1" numOctaves="1" seed="17"></feTurbulence>
+                <feDisplacementMap in="SourceGraphic" scale="7"></feDisplacementMap>
+                <feGaussianBlur stdDeviation="0.2"></feGaussianBlur>
+              </filter>
+            </defs>
             <path id="arcMain" class="energy-arc"></path>
+            <path id="arcFringePath" class="energy-arc secondary"></path>
           </svg>
 
-          <div class="word" id="word">
-            <div class="letter basalt">c</div>
-            <div class="letter vowel" id="letterA">a</div>
-            <div class="letter basalt" id="letterP">p</div>
-            <button class="letter magic-e" id="letterE" type="button">e</button>
+          <div class="word" id="word" aria-label="cap to cape">
+            <div class="letter basalt" id="letterC" aria-hidden="true"><span class="glyph">c</span></div>
+            <div class="letter vowel" id="letterA" aria-hidden="true"><span class="glyph">a</span></div>
+            <div class="letter basalt p" id="letterP" aria-hidden="true"><span class="glyph">p</span></div>
+            <button class="letter magic-e" id="letterE" type="button" aria-label="唤醒 Magic E" aria-hidden="true" tabindex="-1">
+              <span class="glyph">e</span>
+              <span class="crack" aria-hidden="true"><span></span><span></span><span></span></span>
+            </button>
           </div>
+
+          <div id="leak" class="leak" aria-hidden="true"></div>
         </div>
       </div>
 
-      <div class="control-panel">
-        <div class="mana-row">
-          <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(var(--violet), 0.3); border: 1px solid rgba(var(--violet), 0.5);"></div>
-          <div class="mana-meter">
-            <div class="mana-fill" id="manaFill"></div>
+      <div class="control-panel" aria-label="Mana pronunciation controls">
+        <div class="panel-content">
+          <p class="guide" id="guideText">先 <strong>试听 cape</strong>，再 <strong>唤醒紫水晶 e</strong>；水晶亮起后，点击字母 <strong>e</strong> 说出 cape，连续准确 3 次完成炼金。</p>
+
+          <div class="mana-row">
+            <div class="orb" aria-hidden="true"></div>
+            <div class="mana-meter" aria-hidden="true">
+              <div class="mana-fill" id="manaFill"></div>
+            </div>
+            <div class="meter-label" id="meterLabel">0 / 3</div>
           </div>
-          <div class="meter-label" id="meterLabel" style="font-weight: bold; width: 50px;">0 / 3</div>
-        </div>
-        <div class="status" id="status">Magic E 正在沉睡...</div>
-        <div style="display: flex; gap: 1rem; margin-top: 1rem; justify-content: center;">
-          <button id="listenButton" style="padding: 0.8rem 1.5rem; border-radius: 2rem; border: 1px solid rgba(var(--gold), 0.5); background: transparent; color: #fff; cursor: pointer;">试听 cape</button>
-          <button id="resetButton" style="padding: 0.8rem 1.5rem; border-radius: 2rem; border: 1px solid rgba(var(--gold), 0.5); background: transparent; color: #fff; cursor: pointer;" disabled>重置工坊</button>
+
+          <div class="spell-controls">
+            <button class="listen-button" id="listenButton" type="button">试听 cape 发音</button>
+            <button class="wake-button" id="wakeButton" type="button">唤醒紫水晶 e</button>
+            <button class="reset-button" id="resetButton" type="button" disabled>重置工坊</button>
+          </div>
+
+          <p class="install-note" id="installNote">iPhone 使用建议：请通过 HTTPS 链接在 Safari 打开，并使用“分享”里的“添加到主屏幕”。语音检测若在 iOS 上受限，请改用 HTTPS Safari 或配置后端转写端点。</p>
+          <div class="voice-mode" id="voiceMode">语音模式检测中...</div>
+          <div class="status" id="status">当前形态：cap。点击紫水晶或唤醒按钮，让 Magic E 腾出位置。</div>
         </div>
       </div>
     </section>
   </main>
 
   <script>
-    // 状态管理
-const state = {
-  awake: false,
-  stable: false,
-  hits: 0,
-  checking: false,
-  recognition: null
-};
+    const root = document.documentElement;
+    const body = document.body;
+    const wordStage = document.getElementById("wordStage");
+    const letterA = document.getElementById("letterA");
+    const letterP = document.getElementById("letterP");
+    const letterE = document.getElementById("letterE");
+    const listenButton = document.getElementById("listenButton");
+    const wakeButton = document.getElementById("wakeButton");
+    const resetButton = document.getElementById("resetButton");
+    const guideText = document.getElementById("guideText");
+    const status = document.getElementById("status");
+    const installNote = document.getElementById("installNote");
+    const voiceMode = document.getElementById("voiceMode");
+    const meterLabel = document.getElementById("meterLabel");
+    const arcMain = document.getElementById("arcMain");
+    const arcFringePath = document.getElementById("arcFringePath");
+    const arcNoise = document.getElementById("arcNoise");
+    const arcDisplace = document.getElementById("arcDisplace");
+    const arcBlur = document.getElementById("arcBlur");
+    const leak = document.getElementById("leak");
+    const SpeechRecognitionApi = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const TRANSCRIBE_ENDPOINT = window.MAGIC_E_TRANSCRIBE_ENDPOINT || "";
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+      || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const isSafari = /^((?!chrome|android|crios|fxios|edgios).)*safari/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    const isSecureOrigin = window.isSecureContext || location.hostname === "localhost" || location.hostname === "127.0.0.1";
 
-const root = document.documentElement;
-const body = document.body;
-const letterE = document.getElementById('letterE');
-const manaFill = document.getElementById('manaFill');
-const guideTitle = document.getElementById('guideTitle');
-const guideText = document.getElementById('guideText');
-const status = document.getElementById('status');
-const meterLabel = document.getElementById('meterLabel');
+    const state = {
+      awake: false,
+      stable: false,
+      hits: 0,
+      rafId: 0,
+      lastArcTime: 0,
+      speaking: false,
+      checking: false,
+      recognition: null,
+      mediaRecorder: null,
+      recordedChunks: [],
+      flashTimer: 0,
+      statusOverride: ""
+    };
 
-// --- 核心修复：录音控制逻辑 ---
-
-// 启动录音
-function startRecording(e) {
-  if (!state.awake || state.stable || state.checking) return;
-  
-  if (e && typeof e.preventDefault === 'function') e.preventDefault();
-
-  // 如果识别实例不存在，则初始化
-  if (!state.recognition) {
-    state.recognition = initRecognition();
-  }
-
-  if (state.recognition) {
-    try {
-      state.recognition.start();
-      state.checking = true;
-      status.textContent = "正在聆听 'cape'...";
-      root.style.setProperty('--checking-pulse', '1');
-    } catch (err) {
-      console.warn("识别已在运行中");
-    }
-  }
-}
-
-// 停止录音
-function stopRecording() {
-  if (!state.checking) return;
-  
-  if (state.recognition) {
-    state.recognition.stop();
-  }
-}
-
-// 唤醒与触发逻辑：第一次点击唤醒，之后变为单次点击触发/停止录音
-letterE.addEventListener('click', (e) => {
-  if (!state.awake) {
-    state.awake = true;
-    updateVisuals();
-  } else {
-    if (state.stable) return;
-    
-    // 如果正在录音则再次点击停止，否则启动录音
-    if (state.checking) {
-      stopRecording();
-    } else {
-      startRecording(e);
-    }
-  }
-});
-
-// --- 界面与引导更新 ---
-
-function updateGuide() {
-  if (!state.awake) {
-    guideTitle.textContent = "第一步：唤醒";
-    guideText.innerHTML = "点击紫水晶 <b>e</b> 唤醒它。它将展现魔力，改变单词的结构。";
-  } else if (!state.stable) {
-    guideTitle.textContent = `魔力积蓄中 (${Math.floor(state.hits)}/3)`;
-    guideText.innerHTML = "<b>点击紫水晶 e</b> 并大声读出 <b>'cape'</b>。<br><small>提示：让 a 发出长音 /eɪ/，像字母 A 的读音一样！</small>";
-  } else {
-    guideTitle.textContent = "转化成功！";
-    guideText.innerHTML = "你已掌握 Magic E 的秘密。原本的 <b>cap</b> 已经稳定成为了 <b>cape</b>。";
-  }
-}
-
-function triggerEnergySurge() {
-  manaFill.classList.remove('surge');
-  void manaFill.offsetWidth; 
-  manaFill.classList.add('surge');
-}
-
-function updateVisuals() {
-  const level = state.hits / 3;
-  root.style.setProperty('--energy-fill', `${level * 100}%`);
-  meterLabel.textContent = `${Math.floor(state.hits)} / 3`;
-  
-  if (state.awake) {
-    body.classList.add('is-awake');
-    if (!state.checking) {
-        status.textContent = state.stable ? "炼金转化完成！" : "请点击 e 并发音...";
-    }
-    root.style.setProperty('--arc-width', `${2 + level * 8}px`);
-  }
-  
-  if (state.stable) {
-    body.classList.add('is-stable');
-    document.getElementById('resetButton').disabled = false;
-    status.textContent = "完美转化！";
-  }
-  updateGuide();
-}
-
-// --- 语音识别核心 (你提供的算法版) ---
-
-function initRecognition() {
-  const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!Speech) {
-    status.textContent = "浏览器不支持语音识别";
-    return null;
-  }
-  const rec = new Speech();
-  rec.lang = 'en-US';
-  rec.continuous = false;
-  rec.interimResults = false;
-  
-  rec.onresult = (e) => {
-    const transcript = e.results[0][0].transcript;
-    const confidence = e.results[0][0].confidence;
-    const score = evaluatePronunciation(transcript, confidence);
-
-    if (score >= 80) {
-      state.hits = Math.min(state.hits + 1, 3);
-      triggerEnergySurge(); 
-      status.textContent = "完美长元音！✨";
-    } else if (score >= 50) {
-      state.hits = Math.min(state.hits + 0.5, 3);
-      status.textContent = "很接近了，发音再饱满一点！👏";
-    } else {
-      state.hits = Math.max(0, state.hits - 0.3);
-      status.textContent = "听起来像短音 'cap'，记得拉长 a 的声音！";
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
     }
 
-    if (state.hits >= 3) state.stable = true;
-    updateVisuals();
-  };
-  
-  rec.onend = () => { 
-    state.checking = false;
-    root.style.setProperty('--checking-pulse', '0');
-    updateVisuals(); 
-  };
-  
-  rec.onerror = (e) => {
-    state.checking = false;
-    if (e.error !== 'no-speech') {
-        status.textContent = "试着离麦克风近一点...";
+    function setVar(name, value) {
+      root.style.setProperty(name, value);
     }
-  };
-  
-  return rec;
-}
 
-// --- 辅助算法函数 ---
+    function setStatus(message) {
+      state.statusOverride = message;
+      status.textContent = message;
+    }
 
-function levenshteinDistance(a, b) {
-  const matrix = [];
-  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-  for (let i = 1; i <= b.length; i++) {
-    for (let j = 1; j <= a.length; j++) {
-      if (b.charAt(i - 1) === a.charAt(j - 1)) {
-        matrix[i][j] = matrix[i - 1][j - 1];
+    function clearStatusOverride() {
+      state.statusOverride = "";
+    }
+
+    function updateButtonStates() {
+      listenButton.disabled = !("speechSynthesis" in window) || state.checking;
+      wakeButton.disabled = state.awake;
+      letterE.disabled = !state.awake || state.stable || state.checking;
+      letterE.setAttribute("aria-label", state.awake ? "点击紫水晶 e 开始语音检测" : "唤醒 Magic E");
+      resetButton.disabled = !state.stable;
+    }
+
+    function hasVoicePath() {
+      return Boolean(TRANSCRIBE_ENDPOINT) || Boolean(SpeechRecognitionApi);
+    }
+
+    function updateEnvironmentMessaging() {
+      const notes = [];
+      if (isIOS) {
+        body.classList.add("show-ios-note");
+        if (!isSafari) {
+          notes.push("iOS 上请优先用 Safari 打开。");
+        }
+        if (!isStandalone) {
+          notes.push("可通过分享菜单添加到主屏幕。");
+        }
+      }
+      if (!isSecureOrigin) {
+        notes.push("麦克风需要 HTTPS 或 localhost。");
+      }
+
+      if (TRANSCRIBE_ENDPOINT) {
+        voiceMode.textContent = "语音模式：后端转写优先，浏览器识别备用。";
+      } else if (SpeechRecognitionApi) {
+        voiceMode.textContent = isIOS
+          ? "语音模式：iOS 浏览器内置识别，若失败请改用 HTTPS 部署或后端转写。"
+          : "语音模式：浏览器内置 Web Speech 识别。";
       } else {
-        matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
+        voiceMode.textContent = "语音模式：当前浏览器无内置识别；请使用 HTTPS Safari、Chrome，或配置后端转写端点。";
+      }
+
+      if (notes.length) {
+        installNote.textContent = `${installNote.textContent} ${notes.join(" ")}`;
       }
     }
-  }
-  return matrix[b.length][a.length];
-}
 
-function evaluatePronunciation(transcript, confidence) {
-  const word = transcript.toLowerCase().trim().replace(/[^\w\s]/g, '');
-  const perfectMatches = ['cape', 'kape', 'kayp', 'cake'];
-  const longAVariants = ['cave', 'tape', 'shape', 'keep', 'k', 'ate'];
-  const shortAVariants = ['cap', 'cab', 'cat', 'map'];
+    function updateEnergyVisuals() {
+      const level = state.hits / 3;
+      const activeLevel = state.awake ? level : 0;
+      setVar("--energy", activeLevel.toFixed(3));
+      setVar("--energy-fill", `${(activeLevel * 100).toFixed(2)}%`);
+      setVar("--arc-alpha", state.awake && !state.stable && state.hits > 0 ? (0.32 + activeLevel * 0.68).toFixed(3) : "0");
+      setVar("--arc-width", `${(2 + activeLevel * 8).toFixed(2)}px`);
+      setVar("--arc-glow", `${(activeLevel * 28).toFixed(2)}px`);
+      setVar("--arc-secondary-alpha", (0.1 + activeLevel * 0.5).toFixed(3));
+      setVar("--arc-secondary-width", `${(1 + activeLevel * 3).toFixed(2)}px`);
+      setVar("--lava-heat", activeLevel.toFixed(3));
+      setVar("--lava-glow-alpha", (0.18 + activeLevel * 0.62).toFixed(3));
+      setVar("--lava-glow-size", `${(1 + activeLevel * 3.2).toFixed(2)}rem`);
+      setVar("--lava-core-alpha", (0.16 + activeLevel * 0.62).toFixed(3));
+      setVar("--lava-accent-alpha", (activeLevel * 0.34).toFixed(3));
+      setVar("--a-scale", state.stable ? "1.12" : (1 + activeLevel * 0.1).toFixed(3));
+      setVar("--a-radius", `${(0.16 + activeLevel * 0.18).toFixed(3)}em`);
+      setVar("--crystal-scale", state.awake ? (1 + activeLevel * 0.07).toFixed(3) : "1");
+      setVar("--crystal-pulse-scale", state.awake ? (1.035 + activeLevel * 0.07).toFixed(3) : "1.035");
+      setVar("--orb-core-alpha", (0.18 + activeLevel * 0.56).toFixed(3));
+      setVar("--orb-shadow-size", `${(0.6 + activeLevel * 2.2).toFixed(2)}rem`);
+      setVar("--orb-shadow-alpha", (0.22 + activeLevel * 0.56).toFixed(3));
+      setVar("--vowel-filter", `saturate(${(1 + activeLevel * 0.7).toFixed(3)})`);
+      setVar("--vowel-before-opacity", (0.5 + activeLevel * 0.45).toFixed(3));
+      setVar("--listen-pulse", state.speaking ? "0.34" : "0");
+      setVar("--checking-pulse", state.checking ? "0.32" : "0");
+      setVar("--charge-flash", body.classList.contains("energy-flash") ? "0.92" : "0");
+      meterLabel.textContent = `${state.hits} / 3`;
 
-  let baseScore = 0;
-  if (perfectMatches.includes(word)) baseScore = 100;
-  else if (longAVariants.includes(word)) baseScore = 75;
-  else if (shortAVariants.includes(word)) baseScore = 30;
-  else {
-    const target = 'cape';
-    const distance = levenshteinDistance(word, target);
-    const maxLength = Math.max(word.length, target.length);
-    baseScore = ((maxLength - distance) / maxLength) * 100;
-  }
+      if (state.statusOverride) {
+        status.textContent = state.statusOverride;
+      } else if (state.stable) {
+        status.textContent = "炼金转化完成：cape 稳定成形，a 已永久点亮为黄金。";
+        guideText.innerHTML = "完成：<strong>Magic E</strong> 让前面的元音 <strong>a</strong> 发字母名 /eɪ/，cap 变成 cape。";
+      } else if (!state.awake) {
+        status.textContent = "当前形态：cap。先听 cape，再唤醒紫水晶 e。";
+        guideText.innerHTML = "先 <strong>试听 cape</strong>，再 <strong>唤醒紫水晶 e</strong>；看见 e 后，点击它开始语音检测。";
+      } else if (state.hits === 0) {
+        status.textContent = "Magic E 已醒来。点击亮起的 e，说 cape。";
+        guideText.innerHTML = "<strong>发音规则：</strong>Magic E 不发音，但会让 a 读字母名 /eɪ/；点击 <strong>e</strong> 后清楚说 cape。";
+      } else {
+        status.textContent = `连续命中 ${state.hits} 次。保持准确，能量正在跨过 p 击中 a。`;
+        guideText.innerHTML = `很好：已命中 <strong>${state.hits} / 3</strong>。继续点击 <strong>e</strong> 并说 cape，让能量槽充满。`;
+      }
 
-  const safeConfidence = confidence > 0 ? confidence : 0.5; 
-  return Math.round(baseScore * (0.7 + 0.3 * safeConfidence));
-}
+      updateButtonStates();
+      syncArcToLetters();
+      updateAnimationLoop();
+    }
 
-// --- 其他功能 ---
+    function getCenter(element) {
+      const stageRect = wordStage.getBoundingClientRect();
+      const rect = element.getBoundingClientRect();
+      return {
+        x: rect.left - stageRect.left + rect.width / 2,
+        y: rect.top - stageRect.top + rect.height / 2
+      };
+    }
 
-document.getElementById('listenButton').addEventListener('click', () => {
-  const synth = window.speechSynthesis;
-  const utter = new SpeechSynthesisUtterance(state.awake ? "cape" : "cap");
-  utter.lang = 'en-US';
-  synth.speak(utter);
-});
+    function buildArcPath(intensity, secondary = false) {
+      const a = getCenter(letterA);
+      const e = getCenter(letterE);
+      const dx = a.x - e.x;
+      const distance = Math.max(Math.abs(dx), 1);
+      const jitter = (secondary ? 8 : 15) * intensity;
+      const lift = Math.min(160, 52 + distance * 0.18 + intensity * 48);
+      const midY = Math.min(a.y, e.y) - lift;
+      const first = {
+        x: e.x + dx * 0.22 + randomOffset(jitter),
+        y: midY + randomOffset(jitter)
+      };
+      const second = {
+        x: e.x + dx * 0.72 + randomOffset(jitter),
+        y: midY + randomOffset(jitter)
+      };
+      const start = {
+        x: e.x + randomOffset(jitter * 0.4),
+        y: e.y + randomOffset(jitter * 0.3)
+      };
+      const end = {
+        x: a.x + randomOffset(jitter * 0.4),
+        y: a.y + randomOffset(jitter * 0.3)
+      };
 
-document.getElementById('resetButton').addEventListener('click', () => {
-  state.awake = false; state.stable = false; state.hits = 0;
-  body.classList.remove('is-awake', 'is-stable');
-  document.getElementById('resetButton').disabled = true;
-  status.textContent = "Magic E 正在沉睡...";
-  updateVisuals();
-});
+      return `M ${start.x.toFixed(1)} ${start.y.toFixed(1)} C ${first.x.toFixed(1)} ${first.y.toFixed(1)} ${second.x.toFixed(1)} ${second.y.toFixed(1)} ${end.x.toFixed(1)} ${end.y.toFixed(1)}`;
+    }
 
-updateVisuals();
+    function randomOffset(amount) {
+      return (Math.random() - 0.5) * amount;
+    }
 
+    function syncArcToLetters() {
+      if (!state.awake || state.stable || state.hits <= 0) {
+        arcMain.setAttribute("d", "");
+        arcFringePath.setAttribute("d", "");
+        return;
+      }
+      const intensity = clamp(state.hits / 3, 0.1, 1);
+      arcMain.setAttribute("d", buildArcPath(intensity));
+      arcFringePath.setAttribute("d", buildArcPath(intensity * 0.85, true));
+    }
+
+    function animateArc(time) {
+      if (!state.awake || state.stable || state.hits <= 0) {
+        state.rafId = 0;
+        setVar("--p-jitter-x", "0px");
+        setVar("--p-jitter-y", "0px");
+        setVar("--p-rotate", "0deg");
+        return;
+      }
+
+      const level = state.hits / 3;
+      const interval = 95 - level * 58;
+      if (!state.lastArcTime || time - state.lastArcTime > interval) {
+        syncArcToLetters();
+        arcNoise.setAttribute("baseFrequency", `${(0.018 + level * 0.048).toFixed(3)} ${(0.052 + level * 0.15).toFixed(3)}`);
+        arcNoise.setAttribute("seed", String(Math.floor(Math.random() * 1000)));
+        arcDisplace.setAttribute("scale", String(Math.round(8 + level * 24)));
+        arcBlur.setAttribute("stdDeviation", (0.12 + level * 0.5).toFixed(2));
+        setVar("--p-jitter-x", `${randomOffset(3 + level * 7).toFixed(2)}px`);
+        setVar("--p-jitter-y", `${randomOffset(1 + level * 4).toFixed(2)}px`);
+        setVar("--p-rotate", `${randomOffset(0.4 + level * 1.6).toFixed(2)}deg`);
+        state.lastArcTime = time;
+      }
+
+      state.rafId = requestAnimationFrame(animateArc);
+    }
+
+    function updateAnimationLoop() {
+      const shouldRun = state.awake && !state.stable && state.hits > 0;
+      if (shouldRun && !state.rafId) {
+        state.lastArcTime = 0;
+        state.rafId = requestAnimationFrame(animateArc);
+      }
+    }
+
+    function awakenMagicE() {
+      if (state.awake) return;
+      clearStatusOverride();
+      state.awake = true;
+      body.classList.add("is-awake");
+      letterE.classList.add("is-cracking");
+      letterE.removeAttribute("aria-hidden");
+      letterE.removeAttribute("tabindex");
+      letterE.disabled = false;
+      window.setTimeout(() => letterE.classList.remove("is-cracking"), 720);
+      window.setTimeout(syncArcToLetters, 780);
+      updateEnergyVisuals();
+    }
+
+    function flashEnergyMeter() {
+      if (state.flashTimer) {
+        window.clearTimeout(state.flashTimer);
+      }
+      body.classList.remove("energy-flash");
+      void body.offsetWidth;
+      body.classList.add("energy-flash");
+      setVar("--charge-flash", "0.92");
+      state.flashTimer = window.setTimeout(() => {
+        body.classList.remove("energy-flash");
+        setVar("--charge-flash", "0");
+        state.flashTimer = 0;
+      }, 680);
+    }
+
+    function registerHit() {
+      if (!state.awake || state.stable) return;
+      clearStatusOverride();
+      state.hits = clamp(state.hits + 1, 0, 3);
+      flashEnergyMeter();
+      if (state.hits === 3) {
+        state.stable = true;
+        body.classList.add("is-stable");
+        setVar("--p-jitter-x", "0px");
+        setVar("--p-jitter-y", "0px");
+        setVar("--p-rotate", "0deg");
+      }
+      updateEnergyVisuals();
+    }
+
+    function registerMiss() {
+      if (!state.awake || state.stable) return;
+      clearStatusOverride();
+      state.hits = Math.max(0, state.hits - 1);
+      leak.classList.remove("is-leaking");
+      void leak.offsetWidth;
+      leak.classList.add("is-leaking");
+      updateEnergyVisuals();
+    }
+
+    function getEnglishVoice() {
+      const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+      return voices.find((voice) => /^en-US/i.test(voice.lang))
+        || voices.find((voice) => /^en-GB/i.test(voice.lang))
+        || voices.find((voice) => /^en/i.test(voice.lang))
+        || null;
+    }
+
+    function speakCorrectWord() {
+      if (!("speechSynthesis" in window)) {
+        setStatus("当前浏览器不支持语音合成，无法试听。");
+        updateEnergyVisuals();
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance("cape");
+      const voice = getEnglishVoice();
+      if (voice) {
+        utterance.voice = voice;
+        utterance.lang = voice.lang;
+      } else {
+        utterance.lang = "en-US";
+      }
+      utterance.rate = 0.72;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+
+      state.speaking = true;
+      body.classList.add("is-speaking");
+      listenButton.classList.add("is-speaking");
+      setStatus("正在试听正确发音：cape。");
+      updateEnergyVisuals();
+
+      const finish = () => {
+        state.speaking = false;
+        body.classList.remove("is-speaking");
+        listenButton.classList.remove("is-speaking");
+        clearStatusOverride();
+        updateEnergyVisuals();
+      };
+      utterance.onend = finish;
+      utterance.onerror = () => {
+        state.speaking = false;
+        body.classList.remove("is-speaking");
+        listenButton.classList.remove("is-speaking");
+        setStatus("试听播放失败，浏览器可能阻止了语音合成。");
+        updateEnergyVisuals();
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function normalizeTranscript(value) {
+      return value.toLowerCase().replace(/[^\w\s'-]/g, "").trim();
+    }
+
+    function scoreTranscript(transcript, confidence) {
+      const normalized = normalizeTranscript(transcript);
+      const compact = normalized.replace(/\s+/g, "");
+      const soundsLikeCape = normalized === "cape"
+        || compact === "cape"
+        || normalized.split(/\s+/).includes("cape")
+        || compact.includes("cape");
+      const confidentEnough = typeof confidence !== "number" || confidence === 0 || confidence >= 0.35;
+      return { normalized, hit: soundsLikeCape && confidentEnough };
+    }
+
+    function applyVoiceResult(transcript, confidence) {
+      const score = scoreTranscript(transcript, confidence);
+      if (score.hit) {
+        registerHit();
+        setStatus(state.stable
+          ? `检测结果：${score.normalized || transcript}，发音准确。炼金转化完成。`
+          : `检测结果：${score.normalized || transcript}，发音准确。`);
+      } else {
+        registerMiss();
+        setStatus(`检测结果：${score.normalized || transcript || "未识别"}，未命中 cape，能量泄露。`);
+      }
+    }
+
+    function startVoiceCheck() {
+      if (!hasVoicePath()) {
+        setStatus("当前浏览器不支持内置语音识别；请使用 HTTPS Safari、Chrome，或部署后端转写端点。");
+        updateEnergyVisuals();
+        return;
+      }
+      if (!state.awake || state.stable || state.checking) {
+        return;
+      }
+
+      if (TRANSCRIBE_ENDPOINT && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        startBackendVoiceCheck();
+        return;
+      }
+
+      startBrowserSpeechRecognition();
+    }
+
+    async function startBackendVoiceCheck() {
+      state.checking = true;
+      body.classList.add("is-checking");
+      letterE.classList.add("is-checking");
+      setStatus("正在录音：请说 cape。");
+      updateEnergyVisuals();
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const recorder = new MediaRecorder(stream);
+        state.mediaRecorder = recorder;
+        state.recordedChunks = [];
+
+        recorder.ondataavailable = (event) => {
+          if (event.data && event.data.size > 0) {
+            state.recordedChunks.push(event.data);
+          }
+        };
+
+        recorder.onstop = async () => {
+          stream.getTracks().forEach((track) => track.stop());
+          try {
+            const blob = new Blob(state.recordedChunks, { type: recorder.mimeType || "audio/webm" });
+            const form = new FormData();
+            form.append("audio", blob, "magic-e-pronunciation.webm");
+            form.append("target", "cape");
+            const response = await fetch(TRANSCRIBE_ENDPOINT, { method: "POST", body: form });
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
+            }
+            const result = await response.json();
+            if (typeof result.hit === "boolean") {
+              result.hit ? registerHit() : registerMiss();
+              setStatus(result.hit
+                ? `检测结果：${result.transcript || "cape"}，发音准确。`
+                : `检测结果：${result.transcript || "未识别"}，未命中 cape，能量泄露。`);
+            } else {
+              applyVoiceResult(result.transcript || "", result.confidence);
+            }
+          } catch (error) {
+            registerMiss();
+            setStatus("后端语音转写失败，请检查 HTTPS/API 配置，能量泄露。");
+          } finally {
+            state.checking = false;
+            state.mediaRecorder = null;
+            state.recordedChunks = [];
+            body.classList.remove("is-checking");
+            letterE.classList.remove("is-checking");
+            updateEnergyVisuals();
+          }
+        };
+
+        recorder.start();
+        window.setTimeout(() => {
+          if (recorder.state === "recording") {
+            recorder.stop();
+          }
+        }, 1800);
+      } catch (error) {
+        state.checking = false;
+        state.mediaRecorder = null;
+        body.classList.remove("is-checking");
+        letterE.classList.remove("is-checking");
+        registerMiss();
+        setStatus(isSecureOrigin ? "麦克风权限被拒绝或不可用，能量泄露。" : "麦克风需要 HTTPS 或 localhost，能量泄露。");
+        updateEnergyVisuals();
+      }
+    }
+
+    function startBrowserSpeechRecognition() {
+      const recognition = new SpeechRecognitionApi();
+      state.recognition = recognition;
+      state.checking = true;
+      body.classList.add("is-checking");
+      letterE.classList.add("is-checking");
+      setStatus("正在聆听：请说 cape。");
+      updateEnergyVisuals();
+
+      let handled = false;
+      recognition.lang = "en-US";
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 3;
+
+      recognition.onresult = (event) => {
+        let best = null;
+        for (let resultIndex = 0; resultIndex < event.results.length; resultIndex += 1) {
+          const result = event.results[resultIndex];
+          for (let alternativeIndex = 0; alternativeIndex < result.length; alternativeIndex += 1) {
+            const alternative = result[alternativeIndex];
+            if (!best || alternative.confidence > best.confidence) {
+              best = alternative;
+            }
+          }
+        }
+
+        if (!best) {
+          handled = true;
+          registerMiss();
+          setStatus("没有检测到清晰语音，能量泄露。");
+          return;
+        }
+
+        const score = scoreTranscript(best.transcript, best.confidence);
+        handled = true;
+        applyVoiceResult(best.transcript, best.confidence);
+      };
+
+      recognition.onerror = (event) => {
+        handled = true;
+        registerMiss();
+        const reason = event.error === "service-not-allowed"
+          ? "浏览器语音服务不可用；iOS 请使用 HTTPS Safari，或改接后端转写"
+          : event.error === "not-allowed"
+            ? "麦克风权限被拒绝"
+            : `语音检测中断：${event.error}`;
+        setStatus(`${reason}，能量泄露。`);
+      };
+
+      recognition.onend = () => {
+        if (!handled && state.awake && !state.stable) {
+          registerMiss();
+          setStatus("语音检测结束但没有识别结果，能量泄露。");
+        }
+        state.checking = false;
+        state.recognition = null;
+        body.classList.remove("is-checking");
+        letterE.classList.remove("is-checking");
+        updateEnergyVisuals();
+      };
+
+      try {
+        recognition.start();
+      } catch (error) {
+        state.checking = false;
+        state.recognition = null;
+        body.classList.remove("is-checking");
+        letterE.classList.remove("is-checking");
+        setStatus("语音检测无法启动，请稍后重试，或改用 HTTPS/后端转写。");
+        updateEnergyVisuals();
+      }
+    }
+
+    function handleMagicEClick() {
+      if (!state.awake) {
+        awakenMagicE();
+        return;
+      }
+      startVoiceCheck();
+    }
+
+    function resetWorkshop() {
+      if (state.recognition) {
+        try {
+          state.recognition.abort();
+        } catch (error) {
+          // Ignore abort failures from already-ended recognizers.
+        }
+      }
+      if (state.mediaRecorder && state.mediaRecorder.state === "recording") {
+        state.mediaRecorder.stop();
+      }
+      if (state.rafId) {
+        cancelAnimationFrame(state.rafId);
+      }
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+      if (state.flashTimer) {
+        window.clearTimeout(state.flashTimer);
+      }
+
+      state.awake = false;
+      state.stable = false;
+      state.hits = 0;
+      state.rafId = 0;
+      state.lastArcTime = 0;
+      state.speaking = false;
+      state.checking = false;
+      state.recognition = null;
+      state.mediaRecorder = null;
+      state.recordedChunks = [];
+      state.flashTimer = 0;
+      state.statusOverride = "";
+
+      body.classList.remove("is-awake", "is-stable", "is-speaking", "is-checking", "energy-flash");
+      letterE.classList.remove("is-cracking", "is-checking");
+      listenButton.classList.remove("is-speaking");
+      leak.classList.remove("is-leaking");
+      letterE.setAttribute("aria-hidden", "true");
+      letterE.setAttribute("tabindex", "-1");
+      letterE.disabled = true;
+      arcMain.setAttribute("d", "");
+      arcFringePath.setAttribute("d", "");
+      setVar("--charge-flash", "0");
+      setVar("--p-jitter-x", "0px");
+      setVar("--p-jitter-y", "0px");
+      setVar("--p-rotate", "0deg");
+      updateEnergyVisuals();
+    }
+
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.addEventListener("voiceschanged", updateButtonStates);
+    } else {
+      listenButton.title = "当前浏览器不支持 Speech Synthesis。";
+    }
+    if (!hasVoicePath()) {
+      letterE.title = "当前浏览器不支持 Web Speech Recognition，且未配置后端转写。";
+    }
+
+    updateEnvironmentMessaging();
+    letterE.addEventListener("click", handleMagicEClick);
+    listenButton.addEventListener("click", speakCorrectWord);
+    wakeButton.addEventListener("click", awakenMagicE);
+    resetButton.addEventListener("click", resetWorkshop);
+    window.addEventListener("resize", syncArcToLetters);
+    if ("serviceWorker" in navigator && isSecureOrigin) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {
+          // The app still works without offline caching.
+        });
+      });
+    }
+    updateEnergyVisuals();
   </script>
 </body>
 </html>
