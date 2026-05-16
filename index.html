@@ -150,28 +150,51 @@
     .photon-channel {
       position: absolute;
       top: 50%;
-      /* 起始于字母a的左侧边缘（c宽度 + 间距） */
-      left: calc(0.76em + var(--gap)); 
-      /* 覆盖a→p→e的完整范围（3个间距 + 3个字母宽度） */
-      width: calc(var(--gap) * 3 + 0.76em * 3); 
+      left: 0; /* 初始值，由 JS 动态覆盖 */
+      width: 0; /* 初始值，由 JS 动态覆盖 */
       height: 50px;
-      transform: translateY(-50%);
+      transform: translateY(-50%); /* 垂直居中 */
       pointer-events: none;
       z-index: 0;
-      perspective: 400px; 
+      perspective: 400px;
       opacity: calc(var(--synergy-level) * 0.95);
-      transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), left 0.7s, width 0.7s;
+      /* 平滑过渡适配状态变化 */
+      transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+                  left 0.7s cubic-bezier(0.4, 0, 0.2, 1), 
+                  width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+      /* 两端渐变消散效果 */
       mask-image: linear-gradient(to right, transparent 0%, #000 15%, #000 85%, transparent 100%);
       -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 15%, #000 85%, transparent 100%);
+      display: flex;
+      align-items: center;
     }
     
-    /* 双螺旋量子流：利用伪元素构建互锁的引力浪潮 */
+    /* 修正光子流动动画，适配动态宽度 */
+    @keyframes cosmicFlow {
+      from { background-position: 0 0; }
+      to { background-position: var(--channel-length, 30px) 0; } /* 动态长度变量 */
+    }
+    
+    /* 修正螺旋动画，中心对齐通道 */
+    @keyframes interstellarHelixA {
+      0% { transform: rotateX(0deg) scaleY(0.8); filter: blur(0.6px) brightness(1.2); }
+      50% { transform: rotateX(180deg) scaleY(0.2); filter: blur(1.2px) brightness(0.5); }
+      100% { transform: rotateX(360deg) scaleY(0.8); filter: blur(0.6px) brightness(1.2); }
+    }
+    
+    @keyframes interstellarHelixB {
+      0% { transform: rotateX(180deg) scaleY(0.2); filter: blur(1.2px) brightness(0.5); }
+      50% { transform: rotateX(360deg) scaleY(0.8); filter: blur(0.6px) brightness(1.2); }
+      100% { transform: rotateX(540deg) scaleY(0.2); filter: blur(1.2px) brightness(0.5); }
+    }
+    
+    /* 伪元素适配动态通道宽度 */
     .photon-channel::before,
     .photon-channel::after {
       content: '';
       position: absolute;
       inset: 0;
-      background-size: 30px 100%;
+      background-size: var(--channel-length, 30px) 100%; /* 动态背景尺寸 */
     }
     
     /* 前向金白螺旋流（a→e） */
@@ -380,6 +403,38 @@ function triggerEnergySurge() {
   manaFill.classList.add('surge');
 }
 
+// 核心：计算并更新光子通道（从A中心到E中心）
+function updatePhotonChannel() {
+  const letterA = document.getElementById('letterA');
+  const letterE = document.getElementById('letterE');
+  const photonChannel = document.getElementById('photonChannel');
+  const wordContainer = document.getElementById('word');
+  
+  if (!letterA || !letterE || !photonChannel || !wordContainer) return;
+  
+  // 获取元素可视区域坐标（相对于视口）
+  const aRect = letterA.getBoundingClientRect();
+  const eRect = letterE.getBoundingClientRect();
+  const wordRect = wordContainer.getBoundingClientRect();
+  
+  // 计算A的中心坐标（相对于.word容器）
+  const aCenterX = aRect.left - wordRect.left + aRect.width / 2;
+  const aCenterY = aRect.top - wordRect.top + aRect.height / 2;
+  
+  // 计算E的中心坐标（相对于.word容器）
+  const eCenterX = eRect.left - wordRect.left + eRect.width / 2;
+  
+  // 光子通道：起始位置=A中心X，宽度=E中心X - A中心X
+  photonChannel.style.left = `${aCenterX}px`;
+  photonChannel.style.width = `${eCenterX - aCenterX}px`;
+  photonChannel.style.top = `${aCenterY}px`; // 垂直对齐A的中心
+  photonChannel.style.setProperty('--channel-length', `${eCenterX - aCenterX}px`); // 传递给动画
+}
+
+// 监听窗口缩放，实时更新通道
+window.addEventListener('resize', updatePhotonChannel);
+
+// 修改updateVisuals，末尾调用通道更新
 function updateVisuals() {
   const level = state.hits / 3;
   root.style.setProperty('--energy-fill', `${level * 100}%`);
@@ -401,7 +456,65 @@ function updateVisuals() {
     status.textContent = "完美转化！";
   }
   updateGuide();
+  updatePhotonChannel(); // 新增：更新光子通道
 }
+
+// 唤醒Magic E后，等待gap动画完成再更新通道
+letterE.addEventListener('click', (e) => {
+  if (!state.awake) {
+    state.awake = true;
+    updateVisuals();
+    setTimeout(updatePhotonChannel, 100); // 等待gap动画（0.7s）生效
+  } else {
+    if (state.stable) return;
+    state.checking ? stopRecording() : startRecording(e);
+  }
+});
+
+// 页面加载完成后初始化通道位置
+document.addEventListener('DOMContentLoaded', updatePhotonChannel);
+
+// 修复重置按钮，重置光子通道
+document.getElementById('resetButton').addEventListener('click', () => {
+  // 原有重置逻辑...
+  try {
+    if (state.recognition && state.checking) {
+      state.recognition.stop();
+    }
+    window.speechSynthesis.cancel();
+  } catch(e) { console.log(e); }
+
+  state.hits = 0;
+  state.awake = false;
+  state.checking = false;
+  state.stable = false;
+
+  root.style.setProperty('--energy', '0');
+  root.style.setProperty('--energy-fill', '0%');
+  root.style.setProperty('--synergy-level', '0');
+  root.style.setProperty('--arc-width', '0px');
+  // 其他CSS变量重置...
+
+  body.classList.remove('is-awake', 'is-stable');
+  const letterE = document.getElementById('letterE');
+  if (letterE) {
+    letterE.className = "letter magic-e";
+    letterE.style.transform = "";
+    letterE.style.filter = "";
+    letterE.style.boxShadow = "";
+  }
+
+  // 新增：重置光子通道
+  const photonChannel = document.getElementById('photonChannel');
+  if (photonChannel) {
+    photonChannel.style.left = '0';
+    photonChannel.style.width = '0';
+    photonChannel.style.top = '50%';
+  }
+
+  updateVisuals();
+  console.log("Alchemy Lab Reset Complete.");
+});
 
 // --- 语音识别核心 (你提供的算法版) ---
 
