@@ -533,40 +533,41 @@ document.getElementById('listenButton').addEventListener('click', () => {
   synth.speak(utter);
 });
 
-const resetBtn = document.getElementById('resetWorkshopBtn');
-const magicEBtn = document.querySelector('.magic-e-button'); // 你的Magic E按钮选择器
-const photonChannel = document.querySelector('.photon-channel'); // 光子通道元素
-const root = document.documentElement; // CSS根变量
-
-// 2. 单击重置：页面恢复100%初始状态
-resetBtn.addEventListener('click', resetToInitialState);
-
-// 3. 完整重置函数（覆盖所有动态效果）
-function resetToInitialState() {
-    // ==============================================
-    // ① 重置CSS根变量（光子透明度、能量等级恢复初始值）
-    // ==============================================
-    root.style.setProperty('--synergy-level', 0); // 光子完全隐藏（初始状态）
-
-    // ==============================================
-    // ② 重置Magic E按钮（移除激活样式、状态）
-    // ==============================================
-    if (magicEBtn) magicEBtn.classList.remove('active');
-
-    // ==============================================
-    // ③ 重置光子渲染（停止动画、清空流动、恢复初始定位）
-    // ==============================================
-    if (photonChannel) {
-        // 暂停光子动画
-        photonChannel.style.animation = 'none';
-        photonChannel.querySelectorAll('::before, ::after').forEach(pseudo => {
-            pseudo.style.animation = 'none';
-        });
-        // 强制浏览器重绘 → 重启初始状态（无动画）
-        void photonChannel.offsetHeight;
-        // 清空所有动态样式
-        photonChannel.removeAttribute('style');
-    }
+document.getElementById('resetWorkshopBtn').addEventListener('click', () => {
+  const resetBtn = document.getElementById('resetWorkshopBtn');
+  const magicEBtn = document.querySelector('.magic-e-button'); // 你的Magic E按钮选择器
+  const photonChannel = document.querySelector('.photon-channel'); // 光子通道元素
+  const root = document.documentElement; // CSS根变量
+  
+  // 2. 单击重置：页面恢复100%初始状态
+  resetBtn.addEventListener('click', resetToInitialState);
+  
+  // 3. 完整重置函数（覆盖所有动态效果）
+  function resetToInitialState() {
+      // ==============================================
+      // ① 重置CSS根变量（光子透明度、能量等级恢复初始值）
+      // ==============================================
+      root.style.setProperty('--synergy-level', 0); // 光子完全隐藏（初始状态）
+  
+      // ==============================================
+      // ② 重置Magic E按钮（移除激活样式、状态）
+      // ==============================================
+      if (magicEBtn) magicEBtn.classList.remove('active');
+  
+      // ==============================================
+      // ③ 重置光子渲染（停止动画、清空流动、恢复初始定位）
+      // ==============================================
+      if (photonChannel) {
+          // 暂停光子动画
+          photonChannel.style.animation = 'none';
+          photonChannel.querySelectorAll('::before, ::after').forEach(pseudo => {
+              pseudo.style.animation = 'none';
+          });
+          // 强制浏览器重绘 → 重启初始状态（无动画）
+          void photonChannel.offsetHeight;
+          // 清空所有动态样式
+          photonChannel.removeAttribute('style');
+      }
 
 updateVisuals();
 
