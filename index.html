@@ -318,8 +318,8 @@ const state = {
   awake: false,
   stable: false,
   hits: 0,
-  checking: false,
-  recognition: null
+  checking: false, // 统一用checking标记录音状态
+  recognition: null // 语音识别实例
 };
 
 const root = document.documentElement;
@@ -333,6 +333,9 @@ const meterLabel = document.getElementById('meterLabel');
 let recordingTimer = null;  // 录音自动停止计时器
 const RECORD_DURATION = 2000; // 录音时长：2秒（可改）
 
+// --- 核心修复1：初始化语音识别实例 ---
+state.recognition = initRecognition();
+
 // --- 核心修复：录音控制逻辑 ---
 
 // 启动录音
@@ -342,14 +345,21 @@ function startRecording(e) {
   status.textContent = "正在听音...请发音！";
   updateVisuals();
 
-  // 启动语音识别（沿用你的原有识别逻辑）
+  // 启动语音识别
   try {
-    state.recognition.start();
+    if (state.recognition) { // 增加实例存在性判断
+      state.recognition.start();
+    } else {
+      status.textContent = "语音识别未初始化，请刷新页面";
+      state.checking = false;
+    }
   } catch (err) {
     console.log("录音启动失败：", err);
+    status.textContent = "录音启动失败，请允许麦克风权限";
+    state.checking = false;
   }
 
-  // ✅ 核心修复：自动停止录音（给用户2秒发音时间，杜绝瞬断）
+  // 核心修复：自动停止录音（给用户2秒发音时间，杜绝瞬断）
   clearTimeout(recordingTimer);
   recordingTimer = setTimeout(() => {
     stopRecording();
@@ -380,21 +390,30 @@ function stopRecording() {
   updateVisuals();
 }
 
-// 唤醒与触发逻辑：第一次点击唤醒，之后变为单次点击触发/停止录音
+// --- 核心修复2：只绑定一次letterE的click事件，合并逻辑 ---
 letterE.addEventListener('click', (e) => {
+  e.preventDefault(); // 阻止按钮默认事件（仅一次）
+  
+  // 1. 转化完成状态：禁止任何操作
+  if (state.stable) return;
+
+  // 2. 未唤醒 → 唤醒 Magic E
   if (!state.awake) {
     state.awake = true;
     updateVisuals();
-  } else {
-    if (state.stable) return;
-    
-    // 如果正在录音则再次点击停止，否则启动录音
-    if (state.checking) {
-      stopRecording();
-    } else {
-      startRecording(e);
-    }
+    setTimeout(updatePhotonChannel, 100); // 等待间距动画生效
+    return;
   }
+
+  // 3. 已唤醒 → 处理录音逻辑（核心修复：状态锁+防重复触发）
+  // 正在录音中：点击=停止录音
+  if (state.checking) {
+    stopRecording();
+    return;
+  }
+
+  // 未录音 → 启动录音（添加状态锁，杜绝瞬发）
+  startRecording(e);
 });
 
 // --- 界面与引导更新 ---
@@ -474,40 +493,15 @@ function updateVisuals() {
   updatePhotonChannel(); // 新增：更新光子通道
 }
 
-// 唤醒Magic E后，等待gap动画完成再更新通道 + 修复录音逻辑
-letterE.addEventListener('click', (e) => {
-  e.preventDefault(); // 阻止按钮默认事件，避免干扰
-  
-  // 1. 转化完成状态：禁止任何操作
-  if (state.stable) return;
-
-  // 2. 未唤醒 → 唤醒 Magic E
-  if (!state.awake) {
-    state.awake = true;
-    updateVisuals();
-    setTimeout(updatePhotonChannel, 100); // 等待间距动画生效
-    return;
-  }
-
-  // 3. 已唤醒 → 处理录音逻辑（核心修复：状态锁+防重复触发）
-  // 正在录音中：点击=停止录音
-  if (state.checking) {
-    stopRecording();
-    return;
-  }
-
-  // 未录音 → 启动录音（添加状态锁，杜绝瞬发）
-  startRecording(e);
-});
-
 // 页面加载完成后初始化通道位置
 document.addEventListener('DOMContentLoaded', updatePhotonChannel);
 
-// 修复重置按钮，重置光子通道
+// --- 核心修复3：修复重置按钮逻辑（统一状态变量，移除未定义变量） ---
 document.getElementById('resetButton').addEventListener('click', () => {
   clearTimeout(recordingTimer);
   recordingTimer = null;
-  // 原有重置逻辑...
+  
+  // 1. 停止当前可能正在运行的语音识别或背景朗读
   try {
     if (state.recognition && state.checking) {
       state.recognition.stop();
@@ -515,19 +509,43 @@ document.getElementById('resetButton').addEventListener('click', () => {
     window.speechSynthesis.cancel();
   } catch(e) { console.log(e); }
 
+  // 2. 彻底重置全局状态机到刚打开页面时的状态
   state.hits = 0;
   state.awake = false;
-  state.checking = false;
+  state.checking = false; // 统一用checking
   state.stable = false;
 
+  // 3. 恢复 root 节点上所有的初始 CSS 变量
   root.style.setProperty('--energy', '0');
   root.style.setProperty('--energy-fill', '0%');
   root.style.setProperty('--synergy-level', '0');
+  root.style.setProperty('--arc-alpha', '0');
   root.style.setProperty('--arc-width', '0px');
-  // 其他CSS变量重置...
+  root.style.setProperty('--arc-glow', '0px');
+  root.style.setProperty('--arc-secondary-alpha', '0');
+  root.style.setProperty('--arc-secondary-width', '0px');
+  root.style.setProperty('--lava-heat', '0');
+  root.style.setProperty('--lava-glow-alpha', '0.18');
+  root.style.setProperty('--lava-glow-size', '1rem');
+  root.style.setProperty('--lava-core-alpha', '0.16');
+  root.style.setProperty('--lava-accent-alpha', '0');
+  root.style.setProperty('--a-scale', '1');
+  root.style.setProperty('--a-radius', '0.16em');
+  root.style.setProperty('--p-jitter-x', '0px');
+  root.style.setProperty('--p-jitter-y', '0px');
+  root.style.setProperty('--p-rotate', '0deg');
+  root.style.setProperty('--crystal-scale', '1');
+  root.style.setProperty('--crystal-glow', '0px');
+  root.style.setProperty('--orb-core-alpha', '0.18');
+  root.style.setProperty('--orb-shadow-size', '0.6rem');
+  root.style.setProperty('--orb-shadow-alpha', '0.22');
+  root.style.setProperty('--vowel-filter', 'saturate(1)');
+  root.style.setProperty('--vowel-before-opacity', '0.5');
 
+  // 4. 移除全页面的激活状态类
   body.classList.remove('is-awake', 'is-stable');
-  const letterE = document.getElementById('letterE');
+  
+  // 5. 恢复 Magic E 按钮的原本样式
   if (letterE) {
     letterE.className = "letter magic-e";
     letterE.style.transform = "";
@@ -535,7 +553,7 @@ document.getElementById('resetButton').addEventListener('click', () => {
     letterE.style.boxShadow = "";
   }
 
-  // 新增：重置光子通道
+  // 6. 重置光子通道
   const photonChannel = document.getElementById('photonChannel');
   if (photonChannel) {
     photonChannel.style.left = '0';
@@ -543,16 +561,17 @@ document.getElementById('resetButton').addEventListener('click', () => {
     photonChannel.style.top = '50%';
   }
 
+  // 7. 同步更新UI
+  status.textContent = "Magic E 正在沉睡...";
   updateVisuals();
   console.log("Alchemy Lab Reset Complete.");
 });
 
-// --- 语音识别核心 (你提供的算法版) ---
-
+// --- 语音识别核心 ---
 function initRecognition() {
   const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!Speech) {
-    status.textContent = "浏览器不支持语音识别";
+    status.textContent = "浏览器不支持语音识别（请使用Chrome）";
     return null;
   }
   const rec = new Speech();
@@ -589,16 +608,20 @@ function initRecognition() {
   
   rec.onerror = (e) => {
     state.checking = false;
-    if (e.error !== 'no-speech') {
-        status.textContent = "试着离麦克风近一点...";
+    if (e.error === 'no-speech') {
+      status.textContent = "未检测到语音，请大声发音！";
+    } else if (e.error === 'not-allowed') {
+      status.textContent = "请允许麦克风权限后重试";
+    } else {
+      status.textContent = `录音错误：${e.error}，请重试`;
     }
+    updateVisuals();
   };
   
   return rec;
 }
 
 // --- 辅助算法函数 ---
-
 function levenshteinDistance(a, b) {
   const matrix = [];
   for (let i = 0; i <= b.length; i++) matrix[i] = [i];
@@ -637,7 +660,6 @@ function evaluatePronunciation(transcript, confidence) {
 }
 
 // --- 其他功能 ---
-
 document.getElementById('listenButton').addEventListener('click', () => {
   const synth = window.speechSynthesis;
   const utter = new SpeechSynthesisUtterance(state.awake ? "cape" : "cap");
@@ -645,76 +667,8 @@ document.getElementById('listenButton').addEventListener('click', () => {
   synth.speak(utter);
 });
 
-// --- 找到重置按钮并将其功效修改为：页面彻底回到初始状态 ---
-document.getElementById('resetButton').addEventListener('click', () => {
-  // 1. 停止当前可能正在运行的语音识别或背景朗读
-  try {
-    if (recognition && state.recognizing) {
-      recognition.stop();
-    }
-    window.speechSynthesis.cancel();
-  } catch(e) { console.log(e); }
-
-  // 2. 彻底重置全局状态机到刚打开页面时的状态
-  state.hits = 0;
-  state.awake = false;
-  state.recognizing = false;
-  state.unlocked = false;
-
-  // 3. 清空控制台和视觉反馈面板的提示文字
-  statusIndicator.innerHTML = '<span style="color: rgba(var(--basalt-bright), 0.5)">✦ 炼金工坊已就绪，等待唤醒 Magic E...</span>';
-  feedbackEl.textContent = "— 炼金台静默中 —";
-  feedbackEl.className = "feedback-text";
-  transcriptEl.textContent = "";
-
-  // 4. 恢复 root 节点上所有的初始 CSS 变量控制（压制所有发光与位移）
-  root.style.setProperty('--energy', '0');
-  root.style.setProperty('--energy-fill', '0%');
-  root.style.setProperty('--synergy-level', '0'); // 重置 a 和 e 之间的光子通道与协同亮度
-  root.style.setProperty('--arc-alpha', '0');
-  root.style.setProperty('--arc-width', '0px');
-  root.style.setProperty('--arc-glow', '0px');
-  root.style.setProperty('--arc-secondary-alpha', '0');
-  root.style.setProperty('--arc-secondary-width', '0px');
-  root.style.setProperty('--lava-heat', '0');
-  root.style.setProperty('--lava-glow-alpha', '0.18');
-  root.style.setProperty('--lava-glow-size', '1rem');
-  root.style.setProperty('--lava-core-alpha', '0.16');
-  root.style.setProperty('--lava-accent-alpha', '0');
-  root.style.setProperty('--a-scale', '1');
-  root.style.setProperty('--a-radius', '0.16em');
-  root.style.setProperty('--p-jitter-x', '0px');
-  root.style.setProperty('--p-jitter-y', '0px');
-  root.style.setProperty('--p-rotate', '0deg');
-  root.style.setProperty('--crystal-scale', '1');
-  root.style.setProperty('--crystal-glow', '0px');
-  root.style.setProperty('--orb-core-alpha', '0.18');
-  root.style.setProperty('--orb-shadow-size', '0.6rem');
-  root.style.setProperty('--orb-shadow-alpha', '0.22');
-  root.style.setProperty('--vowel-filter', 'saturate(1)');
-  root.style.setProperty('--vowel-before-opacity', '0');
-
-  // 5. 移除全页面的激活状态类（让单词间距 gap 缩回、关闭觉醒特效）
-  body.classList.remove('is-awake');
-  
-  // 6. 恢复 Magic E 按钮的原本样式与动效类，使其重新进入“沉睡呼吸”状态
-  const letterE = document.getElementById('letterE');
-  if (letterE) {
-    letterE.className = "letter magic-e";
-    letterE.style.transform = "";
-    letterE.style.filter = "";
-    letterE.style.boxShadow = "";
-  }
-
-  // 7. 同步更新计量器和按钮状态的 UI 渲染
-  updateVisuals();
-  
-  // 8. 额外平滑重置：触发一次震动或界面刷新感（可选，此处通过台词体现）
-  console.log("Alchemy Lab Reset Complete.");
-});
-
+// 初始化UI
 updateVisuals();
-
   </script>
 </body>
 </html>
