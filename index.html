@@ -330,39 +330,54 @@ const guideTitle = document.getElementById('guideTitle');
 const guideText = document.getElementById('guideText');
 const status = document.getElementById('status');
 const meterLabel = document.getElementById('meterLabel');
+let recordingTimer = null;  // 录音自动停止计时器
+const RECORD_DURATION = 2000; // 录音时长：2秒（可改）
 
 // --- 核心修复：录音控制逻辑 ---
 
 // 启动录音
 function startRecording(e) {
-  if (!state.awake || state.stable || state.checking) return;
-  
-  if (e && typeof e.preventDefault === 'function') e.preventDefault();
+  // 状态锁：标记正在录音，禁止重复启动
+  state.checking = true;
+  status.textContent = "正在听音...请发音！";
+  updateVisuals();
 
-  // 如果识别实例不存在，则初始化
-  if (!state.recognition) {
-    state.recognition = initRecognition();
+  // 启动语音识别（沿用你的原有识别逻辑）
+  try {
+    state.recognition.start();
+  } catch (err) {
+    console.log("录音启动失败：", err);
   }
 
-  if (state.recognition) {
-    try {
-      state.recognition.start();
-      state.checking = true;
-      status.textContent = "正在聆听 'cape'...";
-      root.style.setProperty('--checking-pulse', '1');
-    } catch (err) {
-      console.warn("识别已在运行中");
-    }
-  }
+  // ✅ 核心修复：自动停止录音（给用户2秒发音时间，杜绝瞬断）
+  clearTimeout(recordingTimer);
+  recordingTimer = setTimeout(() => {
+    stopRecording();
+  }, RECORD_DURATION);
 }
 
 // 停止录音
 function stopRecording() {
+  // 清理自动停止计时器
+  clearTimeout(recordingTimer);
+  recordingTimer = null;
+
+  // 未在录音：直接返回
   if (!state.checking) return;
-  
-  if (state.recognition) {
-    state.recognition.stop();
+
+  // 关闭语音识别
+  try {
+    if (state.recognition) {
+      state.recognition.stop();
+    }
+  } catch (err) {
+    console.log("录音停止失败：", err);
   }
+
+  // 解锁状态
+  state.checking = false;
+  status.textContent = "分析发音中...";
+  updateVisuals();
 }
 
 // 唤醒与触发逻辑：第一次点击唤醒，之后变为单次点击触发/停止录音
@@ -459,16 +474,30 @@ function updateVisuals() {
   updatePhotonChannel(); // 新增：更新光子通道
 }
 
-// 唤醒Magic E后，等待gap动画完成再更新通道
+// 唤醒Magic E后，等待gap动画完成再更新通道 + 修复录音逻辑
 letterE.addEventListener('click', (e) => {
+  e.preventDefault(); // 阻止按钮默认事件，避免干扰
+  
+  // 1. 转化完成状态：禁止任何操作
+  if (state.stable) return;
+
+  // 2. 未唤醒 → 唤醒 Magic E
   if (!state.awake) {
     state.awake = true;
     updateVisuals();
-    setTimeout(updatePhotonChannel, 100); // 等待gap动画（0.7s）生效
-  } else {
-    if (state.stable) return;
-    state.checking ? stopRecording() : startRecording(e);
+    setTimeout(updatePhotonChannel, 100); // 等待间距动画生效
+    return;
   }
+
+  // 3. 已唤醒 → 处理录音逻辑（核心修复：状态锁+防重复触发）
+  // 正在录音中：点击=停止录音
+  if (state.checking) {
+    stopRecording();
+    return;
+  }
+
+  // 未录音 → 启动录音（添加状态锁，杜绝瞬发）
+  startRecording(e);
 });
 
 // 页面加载完成后初始化通道位置
@@ -476,6 +505,8 @@ document.addEventListener('DOMContentLoaded', updatePhotonChannel);
 
 // 修复重置按钮，重置光子通道
 document.getElementById('resetButton').addEventListener('click', () => {
+  clearTimeout(recordingTimer);
+  recordingTimer = null;
   // 原有重置逻辑...
   try {
     if (state.recognition && state.checking) {
