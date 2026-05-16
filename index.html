@@ -146,32 +146,25 @@
       --gap: 1.5rem; 
     }
     
-    /* --- 新增：电影级“星际穿越”时空螺旋光子通道（已修正范围与方向） --- */
+    /* --- 电影级“星际穿越”时空螺旋光子通道（修正为a→e流向） --- */
     .photon-channel {
       position: absolute;
       top: 50%;
-      
-      /* 【修改 1】重新计算起点：只跳过第一个字母 c（宽度 0.76em），通道从 c 的右侧边缘开始 */
-      left: 0.76em; 
-      
-      /* 【修改 2】重新计算总宽度：跨越了 3 个间距（gap）和 2 个字母（a 和 p 的宽度之和：0.76em * 2 = 1.52em） */
-      width: calc(var(--gap) * 3 + 1.52em); 
-      
-      height: 50px; /* 拓宽纵向空间以容纳引力扭转 */
+      /* 起始于字母a的左侧边缘（c宽度 + 间距） */
+      left: calc(0.76em + var(--gap)); 
+      /* 覆盖a→p→e的完整范围（3个间距 + 3个字母宽度） */
+      width: calc(var(--gap) * 3 + 0.76em * 3); 
+      height: 50px;
       transform: translateY(-50%);
       pointer-events: none;
-      z-index: 0; /* 置于底层，光子会在字母之间的间隙（gap）中显现出来 */
-      
-      /* 注入 3D 视距，产生跨越维度的空间压缩感 */
+      z-index: 0;
       perspective: 400px; 
       opacity: calc(var(--synergy-level) * 0.95);
       transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), left 0.7s, width 0.7s;
-      
-      /* 使用渐变蒙版，让星云能量在接近两端时呈现细腻的“薄雾纱”消散效果 */
       mask-image: linear-gradient(to right, transparent 0%, #000 15%, #000 85%, transparent 100%);
       -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 15%, #000 85%, transparent 100%);
     }
-
+    
     /* 双螺旋量子流：利用伪元素构建互锁的引力浪潮 */
     .photon-channel::before,
     .photon-channel::after {
@@ -180,8 +173,8 @@
       inset: 0;
       background-size: 30px 100%;
     }
-
-    /* 前向金白螺旋流 */
+    
+    /* 前向金白螺旋流（a→e） */
     .photon-channel::before {
       background-image: repeating-linear-gradient(
         135deg,
@@ -193,9 +186,24 @@
         transparent 9px
       );
       filter: blur(0.6px) drop-shadow(0 0 4px rgba(var(--gold), 0.6));
-      
-      /* 【修改 3】为了让主能量流向右（从 C 到 E），我们在 cosmicFlow 后面加上 reverse 反转原有的向左运动 */
-      animation: interstellarHelixA 2.5s linear infinite, cosmicFlow 0.9s linear infinite reverse;
+      /* 正向流动（a→e） */
+      animation: interstellarHelixA 2.5s linear infinite, cosmicFlow 0.9s linear infinite;
+    }
+    
+    /* 后向暗金引力流（与主能量流协同a→e） */
+    .photon-channel::after {
+      background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 3px,
+        rgba(var(--gold), 0.4) 4px,
+        rgba(var(--gold-bright), 0.3) 5px,
+        transparent 6px,
+        transparent 11px
+      );
+      filter: blur(1px) drop-shadow(0 0 6px rgba(var(--gold), 0.4));
+      /* 正向流动，与主能量流形成缠绕 */
+      animation: interstellarHelixB 2.5s linear infinite, cosmicFlow 1.4s linear infinite;
     }
 
 /* 后向暗金引力流 */
@@ -307,7 +315,7 @@
         <div class="status" id="status">Magic E 正在沉睡...</div>
         <div style="display: flex; gap: 1rem; margin-top: 1rem; justify-content: center;">
           <button id="listenButton" style="padding: 0.8rem 1.5rem; border-radius: 2rem; border: 1px solid rgba(var(--gold), 0.5); background: transparent; color: #fff; cursor: pointer;">试听 cape</button>
-          <button id="resetButton" style="padding: 0.8rem 1.5rem; border-radius: 2rem; border: 1px solid rgba(var(--gold), 0.5); background: transparent; color: #fff; cursor: pointer;" disabled>重置工坊</button>
+          <button id="resetWorkshopBtn" style="padding: 0.8rem 1.5rem; border-radius: 2rem; border: 1px solid rgba(var(--gold), 0.5); background: transparent; color: #fff; cursor: pointer;" disabled>重置工坊</button>
         </div>
       </div>
     </section>
@@ -525,73 +533,40 @@ document.getElementById('listenButton').addEventListener('click', () => {
   synth.speak(utter);
 });
 
-// --- 找到重置按钮并将其功效修改为：页面彻底回到初始状态 ---
-document.getElementById('resetButton').addEventListener('click', () => {
-  // 1. 停止当前可能正在运行的语音识别或背景朗读
-  try {
-    if (recognition && state.recognizing) {
-      recognition.stop();
+const resetBtn = document.getElementById('resetWorkshopBtn');
+const magicEBtn = document.querySelector('.magic-e-button'); // 你的Magic E按钮选择器
+const photonChannel = document.querySelector('.photon-channel'); // 光子通道元素
+const root = document.documentElement; // CSS根变量
+
+// 2. 单击重置：页面恢复100%初始状态
+resetBtn.addEventListener('click', resetToInitialState);
+
+// 3. 完整重置函数（覆盖所有动态效果）
+function resetToInitialState() {
+    // ==============================================
+    // ① 重置CSS根变量（光子透明度、能量等级恢复初始值）
+    // ==============================================
+    root.style.setProperty('--synergy-level', 0); // 光子完全隐藏（初始状态）
+
+    // ==============================================
+    // ② 重置Magic E按钮（移除激活样式、状态）
+    // ==============================================
+    if (magicEBtn) magicEBtn.classList.remove('active');
+
+    // ==============================================
+    // ③ 重置光子渲染（停止动画、清空流动、恢复初始定位）
+    // ==============================================
+    if (photonChannel) {
+        // 暂停光子动画
+        photonChannel.style.animation = 'none';
+        photonChannel.querySelectorAll('::before, ::after').forEach(pseudo => {
+            pseudo.style.animation = 'none';
+        });
+        // 强制浏览器重绘 → 重启初始状态（无动画）
+        void photonChannel.offsetHeight;
+        // 清空所有动态样式
+        photonChannel.removeAttribute('style');
     }
-    window.speechSynthesis.cancel();
-  } catch(e) { console.log(e); }
-
-  // 2. 彻底重置全局状态机到刚打开页面时的状态
-  state.hits = 0;
-  state.awake = false;
-  state.recognizing = false;
-  state.unlocked = false;
-
-  // 3. 清空控制台和视觉反馈面板的提示文字
-  statusIndicator.innerHTML = '<span style="color: rgba(var(--basalt-bright), 0.5)">✦ 炼金工坊已就绪，等待唤醒 Magic E...</span>';
-  feedbackEl.textContent = "— 炼金台静默中 —";
-  feedbackEl.className = "feedback-text";
-  transcriptEl.textContent = "";
-
-  // 4. 恢复 root 节点上所有的初始 CSS 变量控制（压制所有发光与位移）
-  root.style.setProperty('--energy', '0');
-  root.style.setProperty('--energy-fill', '0%');
-  root.style.setProperty('--synergy-level', '0'); // 重置 a 和 e 之间的光子通道与协同亮度
-  root.style.setProperty('--arc-alpha', '0');
-  root.style.setProperty('--arc-width', '0px');
-  root.style.setProperty('--arc-glow', '0px');
-  root.style.setProperty('--arc-secondary-alpha', '0');
-  root.style.setProperty('--arc-secondary-width', '0px');
-  root.style.setProperty('--lava-heat', '0');
-  root.style.setProperty('--lava-glow-alpha', '0.18');
-  root.style.setProperty('--lava-glow-size', '1rem');
-  root.style.setProperty('--lava-core-alpha', '0.16');
-  root.style.setProperty('--lava-accent-alpha', '0');
-  root.style.setProperty('--a-scale', '1');
-  root.style.setProperty('--a-radius', '0.16em');
-  root.style.setProperty('--p-jitter-x', '0px');
-  root.style.setProperty('--p-jitter-y', '0px');
-  root.style.setProperty('--p-rotate', '0deg');
-  root.style.setProperty('--crystal-scale', '1');
-  root.style.setProperty('--crystal-glow', '0px');
-  root.style.setProperty('--orb-core-alpha', '0.18');
-  root.style.setProperty('--orb-shadow-size', '0.6rem');
-  root.style.setProperty('--orb-shadow-alpha', '0.22');
-  root.style.setProperty('--vowel-filter', 'saturate(1)');
-  root.style.setProperty('--vowel-before-opacity', '0');
-
-  // 5. 移除全页面的激活状态类（让单词间距 gap 缩回、关闭觉醒特效）
-  body.classList.remove('is-awake');
-  
-  // 6. 恢复 Magic E 按钮的原本样式与动效类，使其重新进入“沉睡呼吸”状态
-  const letterE = document.getElementById('letterE');
-  if (letterE) {
-    letterE.className = "letter magic-e";
-    letterE.style.transform = "";
-    letterE.style.filter = "";
-    letterE.style.boxShadow = "";
-  }
-
-  // 7. 同步更新计量器和按钮状态的 UI 渲染
-  updateVisuals();
-  
-  // 8. 额外平滑重置：触发一次震动或界面刷新感（可选，此处通过台词体现）
-  console.log("Alchemy Lab Reset Complete.");
-});
 
 updateVisuals();
 
