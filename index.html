@@ -56,7 +56,7 @@
       overflow-x: hidden;
     }
 
-    /* 新增：顶部教学引导区域 */
+    /* 顶部教学引导区域 */
     .tutorial-header {
       position: fixed;
       top: 2rem;
@@ -93,14 +93,14 @@
       color: #fff4dc;
     }
 
-    /* 改进：Magic E 按钮激活状态 */
+    /* Magic E 按钮激活状态 */
     .magic-e:active {
       transform: scale(0.92) !important;
       filter: brightness(1.5) !important;
       box-shadow: 0 0 3rem rgba(var(--violet), 1) !important;
     }
 
-    /* 改进：能量槽高亮爆发效果 */
+    /* 能量槽高亮爆发效果 */
     .mana-fill {
       position: relative;
       overflow: hidden;
@@ -116,7 +116,6 @@
       100% { filter: brightness(1) saturate(1); box-shadow: 0 0 1.6rem rgba(var(--violet), 0.54); }
     }
 
-    /* 原有样式保持不变... */
     main { min-height: 100vh; display: grid; place-items: center; padding: 2rem; }
     .workshop { width: min(1100px, 94vw); display: grid; gap: 2rem; }
     .table { position: relative; min-height: 40rem; display: grid; place-items: center; border-radius: 10px; background: radial-gradient(ellipse at center, rgba(255, 198, 95, 0.08), transparent 48%), linear-gradient(145deg, rgba(31, 18, 12, 0.88), rgba(9, 8, 10, 0.9) 66%); box-shadow: inset 0 0 0 1px rgba(255, 224, 166, 0.11), 0 1.5rem 5rem rgba(0, 0, 0, 0.38); isolation: isolate; }
@@ -137,6 +136,55 @@
     .energy-svg { position: absolute; inset: 0; pointer-events: none; }
     .energy-arc { fill: none; stroke: rgba(var(--violet), 0.8); stroke-width: var(--arc-width); }
     @keyframes crystalPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    /* --- 修改原本的 .word 样式，引入 CSS 变量以便计算间距 --- */
+    .word { 
+      position: relative; /* 确保通道相对它绝对定位 */
+      --gap: 0.5rem; 
+      gap: var(--gap); 
+    }
+    body.is-awake .word { 
+      --gap: 1.5rem; 
+    }
+
+    /* --- 新增：协同光子通道特效 --- */
+    .photon-channel {
+      position: absolute;
+      top: 50%;
+      /* 动态计算通道位置：左端点为 c 和 a 的宽度及间距之和，宽度为 p 和两侧间距之和 */
+      left: calc(1.52em + var(--gap)); 
+      width: calc(var(--gap) * 2 + 0.76em); 
+      height: 8px;
+      transform: translateY(-50%);
+      /* 制作颗粒感光子效果 */
+      background-image: radial-gradient(circle, rgba(var(--gold-bright), 1) 30%, transparent 65%);
+      background-size: 15px 8px;
+      opacity: calc(var(--synergy-level) * 0.9);
+      filter: drop-shadow(0 0 6px rgba(var(--gold), 1));
+      animation: photonFlow 0.5s linear infinite;
+      pointer-events: none;
+      z-index: 0; /* 置于字母底层 */
+      transition: opacity 0.5s ease, left 0.7s, width 0.7s;
+    }
+
+    /* 光子从 e 流向 a 的动画 */
+    @keyframes photonFlow {
+      from { background-position: 15px 0; }
+      to { background-position: 0 0; }
+    }
+
+    /* --- 新增：字母 a 和 e 随着发音成功（synergy-level）逐渐变亮 --- */
+    body.is-awake #letterA {
+      filter: brightness(calc(1 + var(--synergy-level) * 0.8));
+      text-shadow: 0 0 calc(var(--synergy-level) * 20px) rgba(var(--gold-bright), 0.9);
+      transition: filter 0.5s, text-shadow 0.5s;
+    }
+
+    body.is-awake #letterE {
+      filter: brightness(calc(1 + var(--synergy-level) * 0.6));
+      box-shadow: inset 0 0 calc(var(--synergy-level) * 10px) rgba(var(--gold-bright), 0.4),
+                  0 0 calc(var(--synergy-level) * 25px) rgba(var(--violet), 0.9);
+      transition: filter 0.5s, box-shadow 0.5s;
+    }
   </style>
 </head>
 <body>
@@ -157,6 +205,7 @@
           </svg>
 
           <div class="word" id="word">
+            <div class="photon-channel" id="photonChannel"></div>
             <div class="letter basalt">c</div>
             <div class="letter vowel" id="letterA">a</div>
             <div class="letter basalt" id="letterP">p</div>
@@ -184,133 +233,226 @@
 
   <script>
     // 状态管理
-    const state = {
-      awake: false,
-      stable: false,
-      hits: 0,
-      checking: false,
-      recognition: null
-    };
+const state = {
+  awake: false,
+  stable: false,
+  hits: 0,
+  checking: false,
+  recognition: null
+};
 
-    const root = document.documentElement;
-    const body = document.body;
-    const letterE = document.getElementById('letterE');
-    const manaFill = document.getElementById('manaFill');
-    const guideTitle = document.getElementById('guideTitle');
-    const guideText = document.getElementById('guideText');
-    const status = document.getElementById('status');
-    const meterLabel = document.getElementById('meterLabel');
-    const arcMain = document.getElementById('arcMain');
+const root = document.documentElement;
+const body = document.body;
+const letterE = document.getElementById('letterE');
+const manaFill = document.getElementById('manaFill');
+const guideTitle = document.getElementById('guideTitle');
+const guideText = document.getElementById('guideText');
+const status = document.getElementById('status');
+const meterLabel = document.getElementById('meterLabel');
 
-    // 升级 3：根据状态更新显眼的引导语和发音规则
-    function updateGuide() {
-      if (!state.awake) {
-        guideTitle.textContent = "第一步：唤醒";
-        guideText.innerHTML = "点击紫水晶 <b>e</b> 唤醒它。它将展现魔力，改变单词的结构。";
-      } else if (!state.stable) {
-        guideTitle.textContent = "第二步：注入魔力";
-        guideText.innerHTML = "<b>长按住紫水晶 e</b> 并大声读出 <b>'cape'</b>。<br><small>规则：Magic E 让中间的 a 从 /æ/ 变成长音 /eɪ/！</small>";
-        if (state.hits > 0) {
-          guideTitle.textContent = `魔力积蓄中 (${state.hits}/3)`;
-        }
-      } else {
-        guideTitle.textContent = "转化成功！";
-        guideText.innerHTML = "你已掌握 Magic E 的秘密。原本的 <b>cap</b> 已经稳定成为了 <b>cape</b>。";
-      }
-    }
+// --- 核心修复：录音控制逻辑 ---
 
-    // 升级 2：发音成功时的能量爆发效果
-    function triggerEnergySurge() {
-      manaFill.classList.remove('surge');
-      void manaFill.offsetWidth; // 强制重绘
-      manaFill.classList.add('surge');
-    }
+// 启动录音
+function startRecording(e) {
+  if (!state.awake || state.stable || state.checking) return;
+  
+  if (e && typeof e.preventDefault === 'function') e.preventDefault();
 
-    function updateVisuals() {
-      const level = state.hits / 3;
-      root.style.setProperty('--energy-fill', `${level * 100}%`);
-      meterLabel.textContent = `${state.hits} / 3`;
-      
-      if (state.awake) {
-        body.classList.add('is-awake');
-        status.textContent = state.stable ? "炼金转化完成！" : "请长按 e 并发音...";
-        root.style.setProperty('--arc-width', `${2 + level * 8}px`);
-      }
-      
-      if (state.stable) {
-        body.classList.add('is-stable');
-        document.getElementById('resetButton').disabled = false;
-      }
-      updateGuide();
-    }
-
-    // 语音比对逻辑（保持原有精简版）
-    function initRecognition() {
-      const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!Speech) return null;
-      const rec = new Speech();
-      rec.lang = 'en-US';
-      rec.onresult = (e) => {
-        const word = e.results[0][0].transcript.toLowerCase();
-        if (word.includes('cape') || word.includes('keep') || word.includes('kape')) {
-          state.hits = Math.min(state.hits + 1, 3);
-          if (state.hits === 3) state.stable = true;
-          triggerEnergySurge(); // 触发高亮效果
-        } else {
-          state.hits = Math.max(0, state.hits - 1);
-        }
-        updateVisuals();
-      };
-      rec.onend = () => { state.checking = false; updateVisuals(); };
-      return rec;
-    }
-
+  // 如果识别实例不存在，则初始化
+  if (!state.recognition) {
     state.recognition = initRecognition();
+  }
 
-    // 升级 1：长按交互逻辑
-    // 使用 Pointer Events 以兼容手机和电脑
-    letterE.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      if (!state.awake) {
-        state.awake = true;
-        updateVisuals();
-        return;
-      }
-      if (state.stable || state.checking || !state.recognition) return;
-
-      state.checking = true;
-      status.textContent = "正在聆听中...";
-      letterE.style.filter = "brightness(2) saturate(2)";
+  if (state.recognition) {
+    try {
       state.recognition.start();
-    });
+      state.checking = true;
+      status.textContent = "正在聆听 'cape'...";
+      root.style.setProperty('--checking-pulse', '1');
+    } catch (err) {
+      console.warn("识别已在运行中");
+    }
+  }
+}
 
-    const stopRecording = () => {
-      if (state.checking && state.recognition) {
-        state.recognition.stop();
-        letterE.style.filter = "";
-      }
-    };
+// 停止录音
+function stopRecording() {
+  if (!state.checking) return;
+  
+  if (state.recognition) {
+    state.recognition.stop();
+  }
+}
 
-    window.addEventListener('pointerup', stopRecording);
-    letterE.addEventListener('pointerleave', stopRecording);
-
-    // 其他原有功能逻辑
-    document.getElementById('listenButton').addEventListener('click', () => {
-      const synth = window.speechSynthesis;
-      const utter = new SpeechSynthesisUtterance(state.awake ? "cape" : "cap");
-      utter.lang = 'en-US';
-      synth.speak(utter);
-    });
-
-    document.getElementById('resetButton').addEventListener('click', () => {
-      state.awake = false; state.stable = false; state.hits = 0;
-      body.classList.remove('is-awake', 'is-stable');
-      document.getElementById('resetButton').disabled = true;
-      updateVisuals();
-    });
-
-    // 初始调用
+// 唤醒与触发逻辑：第一次点击唤醒，之后变为单次点击触发/停止录音
+letterE.addEventListener('click', (e) => {
+  if (!state.awake) {
+    state.awake = true;
     updateVisuals();
+  } else {
+    if (state.stable) return;
+    
+    // 如果正在录音则再次点击停止，否则启动录音
+    if (state.checking) {
+      stopRecording();
+    } else {
+      startRecording(e);
+    }
+  }
+});
+
+// --- 界面与引导更新 ---
+
+function updateGuide() {
+  if (!state.awake) {
+    guideTitle.textContent = "第一步：唤醒";
+    guideText.innerHTML = "点击紫水晶 <b>e</b> 唤醒它。它将展现魔力，改变单词的结构。";
+  } else if (!state.stable) {
+    guideTitle.textContent = `魔力积蓄中 (${Math.floor(state.hits)}/3)`;
+    guideText.innerHTML = "<b>点击紫水晶 e</b> 并大声读出 <b>'cape'</b>。<br><small>提示：让 a 发出长音 /eɪ/，像字母 A 的读音一样！</small>";
+  } else {
+    guideTitle.textContent = "转化成功！";
+    guideText.innerHTML = "你已掌握 Magic E 的秘密。原本的 <b>cap</b> 已经稳定成为了 <b>cape</b>。";
+  }
+}
+
+function triggerEnergySurge() {
+  manaFill.classList.remove('surge');
+  void manaFill.offsetWidth; 
+  manaFill.classList.add('surge');
+}
+
+function updateVisuals() {
+  const level = state.hits / 3;
+  root.style.setProperty('--energy-fill', `${level * 100}%`);
+  const synergyLevel = Math.min(Math.max(state.hits / 3, 0), 1);
+  root.style.setProperty('--synergy-level', synergyLevel);
+  meterLabel.textContent = `${Math.floor(state.hits)} / 3`;
+  
+  if (state.awake) {
+    body.classList.add('is-awake');
+    if (!state.checking) {
+        status.textContent = state.stable ? "炼金转化完成！" : "请点击 e 并发音...";
+    }
+    root.style.setProperty('--arc-width', `${2 + level * 8}px`);
+  }
+  
+  if (state.stable) {
+    body.classList.add('is-stable');
+    document.getElementById('resetButton').disabled = false;
+    status.textContent = "完美转化！";
+  }
+  updateGuide();
+}
+
+// --- 语音识别核心 (你提供的算法版) ---
+
+function initRecognition() {
+  const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Speech) {
+    status.textContent = "浏览器不支持语音识别";
+    return null;
+  }
+  const rec = new Speech();
+  rec.lang = 'en-US';
+  rec.continuous = false;
+  rec.interimResults = false;
+  
+  rec.onresult = (e) => {
+    const transcript = e.results[0][0].transcript;
+    const confidence = e.results[0][0].confidence;
+    const score = evaluatePronunciation(transcript, confidence);
+
+    if (score >= 80) {
+      state.hits = Math.min(state.hits + 1, 3);
+      triggerEnergySurge(); 
+      status.textContent = "完美长元音！✨";
+    } else if (score >= 50) {
+      state.hits = Math.min(state.hits + 0.5, 3);
+      status.textContent = "很接近了，发音再饱满一点！👏";
+    } else {
+      state.hits = Math.max(0, state.hits - 0.3);
+      status.textContent = "听起来像短音 'cap'，记得拉长 a 的声音！";
+    }
+
+    if (state.hits >= 3) state.stable = true;
+    updateVisuals();
+  };
+  
+  rec.onend = () => { 
+    state.checking = false;
+    root.style.setProperty('--checking-pulse', '0');
+    updateVisuals(); 
+  };
+  
+  rec.onerror = (e) => {
+    state.checking = false;
+    if (e.error !== 'no-speech') {
+        status.textContent = "试着离麦克风近一点...";
+    }
+  };
+  
+  return rec;
+}
+
+// --- 辅助算法函数 ---
+
+function levenshteinDistance(a, b) {
+  const matrix = [];
+  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+function evaluatePronunciation(transcript, confidence) {
+  const word = transcript.toLowerCase().trim().replace(/[^\w\s]/g, '');
+  const perfectMatches = ['cape', 'kape', 'kayp', 'cake'];
+  const longAVariants = ['cave', 'tape', 'shape', 'keep', 'k', 'ate'];
+  const shortAVariants = ['cap', 'cab', 'cat', 'map'];
+
+  let baseScore = 0;
+  if (perfectMatches.includes(word)) baseScore = 100;
+  else if (longAVariants.includes(word)) baseScore = 75;
+  else if (shortAVariants.includes(word)) baseScore = 30;
+  else {
+    const target = 'cape';
+    const distance = levenshteinDistance(word, target);
+    const maxLength = Math.max(word.length, target.length);
+    baseScore = ((maxLength - distance) / maxLength) * 100;
+  }
+
+  const safeConfidence = confidence > 0 ? confidence : 0.5; 
+  return Math.round(baseScore * (0.7 + 0.3 * safeConfidence));
+}
+
+// --- 其他功能 ---
+
+document.getElementById('listenButton').addEventListener('click', () => {
+  const synth = window.speechSynthesis;
+  const utter = new SpeechSynthesisUtterance(state.awake ? "cape" : "cap");
+  utter.lang = 'en-US';
+  synth.speak(utter);
+});
+
+document.getElementById('resetButton').addEventListener('click', () => {
+  state.awake = false; state.stable = false; state.hits = 0;
+  body.classList.remove('is-awake', 'is-stable');
+  document.getElementById('resetButton').disabled = true;
+  status.textContent = "Magic E 正在沉睡...";
+  updateVisuals();
+});
+
+updateVisuals();
+
   </script>
 </body>
 </html>
