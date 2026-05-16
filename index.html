@@ -150,9 +150,10 @@
     .photon-channel {
       position: absolute;
       top: 50%;
-      /* 动态计算通道位置：左端点为 c 和 a 的宽度及间距之和，宽度为 p 和两侧间距之和 */
-      left: calc(1.52em + var(--gap)); 
-      width: calc(var(--gap) * 2 + 0.76em); 
+      /* 定位到字母a的中心位置 */
+      left: calc(1.14em + var(--gap)); 
+      /* 通道长度为a中心到e中心的距离 */
+      width: calc(1.52em + 2 * var(--gap)); 
       height: 8px;
       transform: translateY(-50%);
       /* 制作颗粒感光子效果 */
@@ -160,18 +161,18 @@
       background-size: 15px 8px;
       opacity: calc(var(--synergy-level) * 0.9);
       filter: drop-shadow(0 0 6px rgba(var(--gold), 1));
-      animation: photonFlow 0.5s linear infinite;
+      /* 反向动画实现从a到e的流向 */
+      animation: photonFlow 0.5s linear infinite reverse;
       pointer-events: none;
       z-index: 0; /* 置于字母底层 */
       transition: opacity 0.5s ease, left 0.7s, width 0.7s;
     }
-
-    /* 光子从 e 流向 a 的动画 */
+    
+    /* 光子从a流向e的动画（通过reverse反向原动画实现） */
     @keyframes photonFlow {
       from { background-position: 15px 0; }
       to { background-position: 0 0; }
     }
-
     /* --- 新增：字母 a 和 e 随着发音成功（synergy-level）逐渐变亮 --- */
     body.is-awake #letterA {
       filter: brightness(calc(1 + var(--synergy-level) * 0.8));
