@@ -136,54 +136,115 @@
     .energy-svg { position: absolute; inset: 0; pointer-events: none; }
     .energy-arc { fill: none; stroke: rgba(var(--violet), 0.8); stroke-width: var(--arc-width); }
     @keyframes crystalPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-    /* --- 修改原本的 .word 样式，引入 CSS 变量以便计算间距 --- */
+    /* --- 修改原本的 .word 样式，引入空间纵深与变量 --- */
     .word { 
-      position: relative; /* 确保通道相对它绝对定位 */
+      position: relative;
       --gap: 0.5rem; 
       gap: var(--gap); 
     }
     body.is-awake .word { 
       --gap: 1.5rem; 
     }
-
-    /* --- 新增：协同光子通道特效 --- */
+    
+    /* --- 新增：电影级“星际穿越”时空螺旋光子通道 --- */
     .photon-channel {
       position: absolute;
       top: 50%;
-      /* 动态计算通道位置：左端点为 c 和 a 的宽度及间距之和，宽度为 p 和两侧间距之和 */
+      /* 动态计算通道坐标，使其精准横跨在 a 和 e 之间 */
       left: calc(1.52em + var(--gap)); 
       width: calc(var(--gap) * 2 + 0.76em); 
-      height: 8px;
+      height: 50px; /* 拓宽纵向空间以容纳引力扭转 */
       transform: translateY(-50%);
-      /* 制作颗粒感光子效果 */
-      background-image: radial-gradient(circle, rgba(var(--gold-bright), 1) 30%, transparent 65%);
-      background-size: 15px 8px;
-      opacity: calc(var(--synergy-level) * 0.9);
-      filter: drop-shadow(0 0 6px rgba(var(--gold), 1));
-      animation: photonFlow 0.5s linear infinite;
       pointer-events: none;
-      z-index: 0; /* 置于字母底层 */
-      transition: opacity 0.5s ease, left 0.7s, width 0.7s;
+      z-index: 0;
+      
+      /* 核心 1：注入 3D 视距，产生跨越维度的空间压缩感 */
+      perspective: 400px; 
+      opacity: calc(var(--synergy-level) * 0.95);
+      transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), left 0.7s, width 0.7s;
+      
+      /* 核心 2：使用渐变蒙版，让星云能量在接近字母两端时呈现细腻的“薄雾纱”消散效果 */
+      mask-image: linear-gradient(to right, transparent 0%, #000 15%, #000 85%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 15%, #000 85%, transparent 100%);
     }
-
-    /* 光子从 e 流向 a 的动画 */
-    @keyframes photonFlow {
-      from { background-position: 15px 0; }
-      to { background-position: 0 0; }
+    
+    /* 双螺旋量子流：利用伪元素构建互锁的引力浪潮 */
+    .photon-channel::before,
+    .photon-channel::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      /* 核心 3：微米级粒子光栅，倾斜角交错形成星际尘埃纹理 */
+      background-size: 30px 100%;
     }
-
-    /* --- 新增：字母 a 和 e 随着发音成功（synergy-level）逐渐变亮 --- */
+    
+    /* 前向金白螺旋流 */
+    .photon-channel::before {
+      background-image: repeating-linear-gradient(
+        135deg,
+        transparent,
+        transparent 2px,
+        rgba(var(--gold-bright), 0.5) 3px,
+        rgba(var(--gold), 0.7) 4px,
+        transparent 5px,
+        transparent 9px
+      );
+      filter: blur(0.6px) drop-shadow(0 0 4px rgba(var(--gold), 0.6));
+      /* 3D 翻转动画与水平粒子流动画复合，编织出非线性螺旋 */
+      animation: interstellarHelixA 2.5s linear infinite, cosmicFlow 0.9s linear infinite;
+    }
+    
+    /* 后向暗金引力流（相位偏移 180° 且反向运动，形成缠绕的视觉错觉） */
+    .photon-channel::after {
+      background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 3px,
+        rgba(var(--gold), 0.4) 4px,
+        rgba(var(--gold-bright), 0.3) 5px,
+        transparent 6px,
+        transparent 11px
+      );
+      filter: blur(1px) drop-shadow(0 0 6px rgba(var(--gold), 0.4));
+      animation: interstellarHelixB 2.5s linear infinite, cosmicFlow 1.4s linear infinite reverse;
+    }
+    
+    /* --- 电影级特效动画定义 --- */
+    
+    /* 顺着能量倾泻方向的粒子流动感 */
+    @keyframes cosmicFlow {
+      from { background-position: 0 0; }
+      to { background-position: 30px 0; }
+    }
+    
+    /* 模拟光线围绕黑洞引力场旋转的 3D 空间扭转（Strand A） */
+    @keyframes interstellarHelixA {
+      0% { transform: rotateX(0deg) scaleY(0.8); filter: blur(0.6px) brightness(1.2); }
+      50% { transform: rotateX(180deg) scaleY(0.2); filter: blur(1.2px) brightness(0.5); } /* 转到背面时变暗、变模糊 */
+      100% { transform: rotateX(360deg) scaleY(0.8); filter: blur(0.6px) brightness(1.2); }
+    }
+    
+    /* 与 Strand A 完美互锁的对称运动（Strand B） */
+    @keyframes interstellarHelixB {
+      0% { transform: rotateX(180deg) scaleY(0.2); filter: blur(1.2px) brightness(0.5); }
+      50% { transform: rotateX(360deg) scaleY(0.8); filter: blur(0.6px) brightness(1.2); }
+      100% { transform: rotateX(540deg) scaleY(0.2); filter: blur(1.2px) brightness(0.5); }
+    }
+    
+    /* --- 协同点亮：赋予字母 A 和 E 星际电影级的引力耀斑扩散 --- */
     body.is-awake #letterA {
-      filter: brightness(calc(1 + var(--synergy-level) * 0.8));
-      text-shadow: 0 0 calc(var(--synergy-level) * 20px) rgba(var(--gold-bright), 0.9);
-      transition: filter 0.5s, text-shadow 0.5s;
+      filter: brightness(calc(1 + var(--synergy-level) * 0.9)) contrast(1.1);
+      text-shadow: 0 0 calc(var(--synergy-level) * 12px) rgba(var(--gold-bright), 0.9),
+                   0 0 calc(var(--synergy-level) * 30px) rgba(var(--gold), 0.6);
+      transition: filter 0.5s cubic-bezier(0.4, 0, 0.2, 1), text-shadow 0.5s;
     }
-
+    
     body.is-awake #letterE {
-      filter: brightness(calc(1 + var(--synergy-level) * 0.6));
+      filter: brightness(calc(1 + var(--synergy-level) * 0.8)) contrast(1.1);
       box-shadow: inset 0 0 calc(var(--synergy-level) * 10px) rgba(var(--gold-bright), 0.4),
-                  0 0 calc(var(--synergy-level) * 25px) rgba(var(--violet), 0.9);
-      transition: filter 0.5s, box-shadow 0.5s;
+                  0 0 calc(var(--synergy-level) * 25px) rgba(var(--violet), 0.8),
+                  0 0 calc(var(--synergy-level) * 45px) rgba(var(--gold), 0.5);
+      transition: filter 0.5s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s;
     }
   </style>
 </head>
