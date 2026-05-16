@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Magic E Alchemy Workshop Pro</title>
+  <title>Magic E 魔法发音工坊</title>
   <style>
     :root {
       --energy: 0;
@@ -122,7 +122,7 @@
     .word-stage { position: relative; width: 100%; display: grid; place-items: center; }
     .word { display: flex; align-items: flex-end; gap: 0.5rem; transition: gap 0.7s; }
     body.is-awake .word { gap: 1.5rem; }
-    .letter { width: 0.76em; height: 1.04em; font-size: var(--letter-size); font-family: Georgia, serif; font-weight: 900; display: grid; place-items: center; transition: all 0.4s; }
+    .letter { width: 0.76em; height: 1.04em; font-size: var(--letter-size); font-family: Georgia, serif; font-weight: 90; display: grid; place-items: center; transition: all 0.4s; }
     .basalt { background: linear-gradient(145deg, var(--basalt-light), var(--basalt) 44%, var(--basalt-edge)); border-radius: 0.16em; }
     .vowel { background: linear-gradient(145deg, #402016, #1a0d0a 64%, #090605); color: #24100a; filter: var(--vowel-filter); }
     body.is-stable .vowel { color: #4f3008; background: linear-gradient(145deg, #fff0aa, #f0b63d 45%, #86550f); box-shadow: 0 0 2rem rgba(var(--gold), 0.85); }
@@ -272,8 +272,8 @@
 
   <header class="tutorial-header">
     <div class="guide-bubble" id="mainGuide">
-      <h2 id="guideTitle">炼金学徒，欢迎</h2>
-      <p id="guideText">点击单词末尾的紫水晶 <b>e</b>，开启 Magic E 的转化仪式。</p>
+      <h2 id="guideTitle">魔法发音工坊</h2>
+      <p id="guideText">点击紫色的魔法字母 <b>e</b>，开始学习魔法发音吧！</p>
     </div>
   </header>
 
@@ -303,10 +303,10 @@
           </div>
           <div class="meter-label" id="meterLabel" style="font-weight: bold; width: 50px;">0 / 3</div>
         </div>
-        <div class="status" id="status">Magic E 正在沉睡...</div>
+        <div class="status" id="status">魔法e正在睡觉啦~</div>
         <div style="display: flex; gap: 1rem; margin-top: 1rem; justify-content: center;">
-          <button id="listenButton" style="padding: 0.8rem 1.5rem; border-radius: 2rem; border: 1px solid rgba(var(--gold), 0.5); background: transparent; color: #fff; cursor: pointer;">试听 cape</button>
-          <button id="resetButton" style="padding: 0.8rem 1.5rem; border-radius: 2rem; border: 1px solid rgba(var(--gold), 0.5); background: transparent; color: #fff; cursor: pointer;" disabled>重置工坊</button>
+          <button id="listenButton" style="padding: 0.8rem 1.5rem; border-radius: 2rem; border: 1px solid rgba(var(--gold), 0.5); background: transparent; color: #fff; cursor: pointer;">听标准发音</button>
+          <button id="resetButton" style="padding: 0.8rem 1.5rem; border-radius: 2rem; border: 1px solid rgba(var(--gold), 0.5); background: transparent; color: #fff; cursor: pointer;" disabled>重新开始</button>
         </div>
       </div>
     </section>
@@ -318,8 +318,8 @@ const state = {
   awake: false,
   stable: false,
   hits: 0,
-  checking: false, // 统一用checking标记录音状态
-  recognition: null // 语音识别实例
+  checking: false,
+  recognition: null
 };
 
 const root = document.documentElement;
@@ -330,36 +330,32 @@ const guideTitle = document.getElementById('guideTitle');
 const guideText = document.getElementById('guideText');
 const status = document.getElementById('status');
 const meterLabel = document.getElementById('meterLabel');
-let recordingTimer = null;  // 录音自动停止计时器
-const RECORD_DURATION = 2000; // 录音时长：2秒（可改）
+let recordingTimer = null;
+// 优化：延长录音时间为2.5秒，给小学生充足发音时间
+const RECORD_DURATION = 2500;
 
-// --- 核心修复1：初始化语音识别实例 ---
+// 初始化语音识别
 state.recognition = initRecognition();
-
-// --- 核心修复：录音控制逻辑 ---
 
 // 启动录音
 function startRecording(e) {
-  // 状态锁：标记正在录音，禁止重复启动
   state.checking = true;
-  status.textContent = "正在听音...请发音！";
+  status.textContent = "请大声读出 cape ~";
   updateVisuals();
 
-  // 启动语音识别
   try {
-    if (state.recognition) { // 增加实例存在性判断
+    if (state.recognition) {
       state.recognition.start();
     } else {
-      status.textContent = "语音识别未初始化，请刷新页面";
+      status.textContent = "请用Chrome浏览器打开哦";
       state.checking = false;
     }
   } catch (err) {
-    console.log("录音启动失败：", err);
-    status.textContent = "录音启动失败，请允许麦克风权限";
+    console.log("录音失败：", err);
+    status.textContent = "请允许麦克风权限~";
     state.checking = false;
   }
 
-  // 核心修复：自动停止录音（给用户2秒发音时间，杜绝瞬断）
   clearTimeout(recordingTimer);
   recordingTimer = setTimeout(() => {
     stopRecording();
@@ -368,66 +364,60 @@ function startRecording(e) {
 
 // 停止录音
 function stopRecording() {
-  // 清理自动停止计时器
   clearTimeout(recordingTimer);
   recordingTimer = null;
 
-  // 未在录音：直接返回
   if (!state.checking) return;
 
-  // 关闭语音识别
   try {
     if (state.recognition) {
       state.recognition.stop();
     }
   } catch (err) {
-    console.log("录音停止失败：", err);
+    console.log("停止失败：", err);
   }
 
-  // 解锁状态
   state.checking = false;
-  status.textContent = "分析发音中...";
+  status.textContent = "正在判断发音...";
   updateVisuals();
 }
 
-// --- 核心修复2：只绑定一次letterE的click事件，合并逻辑 ---
+// 魔法e点击事件
 letterE.addEventListener('click', (e) => {
-  e.preventDefault(); // 阻止按钮默认事件（仅一次）
+  e.preventDefault();
   
-  // 1. 转化完成状态：禁止任何操作
+  // 完成后禁止操作
   if (state.stable) return;
 
-  // 2. 未唤醒 → 唤醒 Magic E
+  // 未唤醒 → 唤醒魔法e
   if (!state.awake) {
     state.awake = true;
     updateVisuals();
-    setTimeout(updatePhotonChannel, 100); // 等待间距动画生效
+    setTimeout(updatePhotonChannel, 100);
     return;
   }
 
-  // 3. 已唤醒 → 处理录音逻辑（核心修复：状态锁+防重复触发）
-  // 正在录音中：点击=停止录音
+  // 录音中 → 停止录音
   if (state.checking) {
     stopRecording();
     return;
   }
 
-  // 未录音 → 启动录音（添加状态锁，杜绝瞬发）
+  // 启动录音
   startRecording(e);
 });
 
-// --- 界面与引导更新 ---
-
+// 小学生友好引导文字
 function updateGuide() {
   if (!state.awake) {
-    guideTitle.textContent = "第一步：唤醒";
-    guideText.innerHTML = "点击紫水晶 <b>e</b> 唤醒它。它将展现魔力，改变单词的结构。";
+    guideTitle.textContent = "第一步：唤醒魔法e";
+    guideText.innerHTML = "点击紫色的 <b>e</b>，叫醒它吧！";
   } else if (!state.stable) {
-    guideTitle.textContent = `魔力积蓄中 (${Math.floor(state.hits)}/3)`;
-    guideText.innerHTML = "<b>点击紫水晶 e</b> 并大声读出 <b>'cape'</b>。<br><small>提示：让 a 发出长音 /eɪ/，像字母 A 的读音一样！</small>";
+    guideTitle.textContent = `魔力值：${Math.floor(state.hits)}/3`;
+    guideText.innerHTML = "点击魔法e，大声读出 <b>cape</b><br>小提示：a-e 字母组合发/ei/的音哦！";
   } else {
-    guideTitle.textContent = "转化成功！";
-    guideText.innerHTML = "你已掌握 Magic E 的秘密。原本的 <b>cap</b> 已经稳定成为了 <b>cape</b>。";
+    guideTitle.textContent = "🎉 挑战成功！";
+    guideText.innerHTML = "你学会魔法e的发音啦！<br>cap 变成了 cape ~";
   }
 }
 
@@ -437,7 +427,7 @@ function triggerEnergySurge() {
   manaFill.classList.add('surge');
 }
 
-// 核心：计算并更新光子通道（从A中心到E中心）
+// 光子通道位置计算
 function updatePhotonChannel() {
   const letterA = document.getElementById('letterA');
   const letterE = document.getElementById('letterE');
@@ -446,29 +436,23 @@ function updatePhotonChannel() {
   
   if (!letterA || !letterE || !photonChannel || !wordContainer) return;
   
-  // 获取元素可视区域坐标（相对于视口）
   const aRect = letterA.getBoundingClientRect();
   const eRect = letterE.getBoundingClientRect();
   const wordRect = wordContainer.getBoundingClientRect();
   
-  // 计算A的中心坐标（相对于.word容器）
   const aCenterX = aRect.left - wordRect.left + aRect.width / 2;
   const aCenterY = aRect.top - wordRect.top + aRect.height / 2;
-  
-  // 计算E的中心坐标（相对于.word容器）
   const eCenterX = eRect.left - wordRect.left + eRect.width / 2;
   
-  // 光子通道：起始位置=A中心X，宽度=E中心X - A中心X
   photonChannel.style.left = `${aCenterX}px`;
   photonChannel.style.width = `${eCenterX - aCenterX}px`;
-  photonChannel.style.top = `${aCenterY}px`; // 垂直对齐A的中心
-  photonChannel.style.setProperty('--channel-length', `${eCenterX - aCenterX}px`); // 传递给动画
+  photonChannel.style.top = `${aCenterY}px`;
+  photonChannel.style.setProperty('--channel-length', `${eCenterX - aCenterX}px`);
 }
 
-// 监听窗口缩放，实时更新通道
 window.addEventListener('resize', updatePhotonChannel);
 
-// 修改updateVisuals，末尾调用通道更新
+// 界面更新
 function updateVisuals() {
   const level = state.hits / 3;
   root.style.setProperty('--energy-fill', `${level * 100}%`);
@@ -479,7 +463,7 @@ function updateVisuals() {
   if (state.awake) {
     body.classList.add('is-awake');
     if (!state.checking) {
-        status.textContent = state.stable ? "炼金转化完成！" : "请点击 e 并发音...";
+        status.textContent = state.stable ? "🎉 挑战成功！" : "点击魔法e读单词~";
     }
     root.style.setProperty('--arc-width', `${2 + level * 8}px`);
   }
@@ -487,21 +471,19 @@ function updateVisuals() {
   if (state.stable) {
     body.classList.add('is-stable');
     document.getElementById('resetButton').disabled = false;
-    status.textContent = "完美转化！";
+    status.textContent = "你真棒！学会魔法发音啦！";
   }
   updateGuide();
-  updatePhotonChannel(); // 新增：更新光子通道
+  updatePhotonChannel();
 }
 
-// 页面加载完成后初始化通道位置
 document.addEventListener('DOMContentLoaded', updatePhotonChannel);
 
-// --- 核心修复3：修复重置按钮逻辑（统一状态变量，移除未定义变量） ---
+// 重置按钮
 document.getElementById('resetButton').addEventListener('click', () => {
   clearTimeout(recordingTimer);
   recordingTimer = null;
   
-  // 1. 停止当前可能正在运行的语音识别或背景朗读
   try {
     if (state.recognition && state.checking) {
       state.recognition.stop();
@@ -509,69 +491,37 @@ document.getElementById('resetButton').addEventListener('click', () => {
     window.speechSynthesis.cancel();
   } catch(e) { console.log(e); }
 
-  // 2. 彻底重置全局状态机到刚打开页面时的状态
+  // 重置所有状态
   state.hits = 0;
   state.awake = false;
-  state.checking = false; // 统一用checking
+  state.checking = false;
   state.stable = false;
 
-  // 3. 恢复 root 节点上所有的初始 CSS 变量
+  // 重置样式
   root.style.setProperty('--energy', '0');
   root.style.setProperty('--energy-fill', '0%');
   root.style.setProperty('--synergy-level', '0');
-  root.style.setProperty('--arc-alpha', '0');
-  root.style.setProperty('--arc-width', '0px');
-  root.style.setProperty('--arc-glow', '0px');
-  root.style.setProperty('--arc-secondary-alpha', '0');
-  root.style.setProperty('--arc-secondary-width', '0px');
-  root.style.setProperty('--lava-heat', '0');
-  root.style.setProperty('--lava-glow-alpha', '0.18');
-  root.style.setProperty('--lava-glow-size', '1rem');
-  root.style.setProperty('--lava-core-alpha', '0.16');
-  root.style.setProperty('--lava-accent-alpha', '0');
-  root.style.setProperty('--a-scale', '1');
-  root.style.setProperty('--a-radius', '0.16em');
-  root.style.setProperty('--p-jitter-x', '0px');
-  root.style.setProperty('--p-jitter-y', '0px');
-  root.style.setProperty('--p-rotate', '0deg');
-  root.style.setProperty('--crystal-scale', '1');
-  root.style.setProperty('--crystal-glow', '0px');
-  root.style.setProperty('--orb-core-alpha', '0.18');
-  root.style.setProperty('--orb-shadow-size', '0.6rem');
-  root.style.setProperty('--orb-shadow-alpha', '0.22');
-  root.style.setProperty('--vowel-filter', 'saturate(1)');
-  root.style.setProperty('--vowel-before-opacity', '0.5');
-
-  // 4. 移除全页面的激活状态类
   body.classList.remove('is-awake', 'is-stable');
   
-  // 5. 恢复 Magic E 按钮的原本样式
   if (letterE) {
     letterE.className = "letter magic-e";
-    letterE.style.transform = "";
-    letterE.style.filter = "";
-    letterE.style.boxShadow = "";
   }
 
-  // 6. 重置光子通道
   const photonChannel = document.getElementById('photonChannel');
   if (photonChannel) {
     photonChannel.style.left = '0';
     photonChannel.style.width = '0';
-    photonChannel.style.top = '50%';
   }
 
-  // 7. 同步更新UI
-  status.textContent = "Magic E 正在沉睡...";
+  status.textContent = "魔法e正在睡觉啦~";
   updateVisuals();
-  console.log("Alchemy Lab Reset Complete.");
 });
 
-// --- 语音识别核心 ---
+// 语音识别核心
 function initRecognition() {
   const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!Speech) {
-    status.textContent = "浏览器不支持语音识别（请使用Chrome）";
+    status.textContent = "请用Chrome浏览器打开哦";
     return null;
   }
   const rec = new Speech();
@@ -582,18 +532,24 @@ function initRecognition() {
   rec.onresult = (e) => {
     const transcript = e.results[0][0].transcript;
     const confidence = e.results[0][0].confidence;
-    const score = evaluatePronunciation(transcript, confidence);
+    // 核心优化：宽松版发音判定
+    const score = evaluatePronunciationKids(transcript, confidence);
 
-    if (score >= 80) {
+    // 小学生友好加分规则：高分+1，中分+0.8，低分+0.3，错误仅扣0.1（极低惩罚）
+    if (score >= 90) {
       state.hits = Math.min(state.hits + 1, 3);
       triggerEnergySurge(); 
-      status.textContent = "完美长元音！✨";
-    } else if (score >= 50) {
-      state.hits = Math.min(state.hits + 0.5, 3);
-      status.textContent = "很接近了，发音再饱满一点！👏";
+      status.textContent = "🌟 完美发音！太棒了！";
+    } else if (score >= 70) {
+      state.hits = Math.min(state.hits + 0.8, 3);
+      status.textContent = "👍 发音很棒，继续加油！";
+    } else if (score >= 30) {
+      state.hits = Math.min(state.hits + 0.3, 3);
+      status.textContent = "😊 很接近啦，再试一次！";
     } else {
-      state.hits = Math.max(0, state.hits - 0.3);
-      status.textContent = "听起来像短音 'cap'，记得拉长 a 的声音！";
+      // 仅明显错误扣极少分，保护积极性
+      state.hits = Math.max(0, state.hits - 0.1);
+      status.textContent = "❌ 发音错啦，试试读 cape~";
     }
 
     if (state.hits >= 3) state.stable = true;
@@ -602,18 +558,17 @@ function initRecognition() {
   
   rec.onend = () => { 
     state.checking = false;
-    root.style.setProperty('--checking-pulse', '0');
     updateVisuals(); 
   };
   
   rec.onerror = (e) => {
     state.checking = false;
     if (e.error === 'no-speech') {
-      status.textContent = "未检测到语音，请大声发音！";
+      status.textContent = "没有听到声音哦，大声一点~";
     } else if (e.error === 'not-allowed') {
-      status.textContent = "请允许麦克风权限后重试";
+      status.textContent = "请允许麦克风权限~";
     } else {
-      status.textContent = `录音错误：${e.error}，请重试`;
+      status.textContent = "出错啦，再试一次~";
     }
     updateVisuals();
   };
@@ -621,7 +576,38 @@ function initRecognition() {
   return rec;
 }
 
-// --- 辅助算法函数 ---
+// --------------------------
+// 核心优化：小学生专用发音判定（超宽松）
+// --------------------------
+function evaluatePronunciationKids(transcript, confidence) {
+  // 统一格式化：小写、去空格、去标点
+  const word = transcript.toLowerCase().trim().replace(/[^\w\s]/g, '');
+  
+  // 1. 完美匹配：直接100分
+  const perfect = ['cape', 'kape', 'kayp', 'caip'];
+  // 2. 长音A近似发音：90分（大幅放宽）
+  const longA = ['cave', 'tape', 'shape', 'ape', 'kay', 'cake', 'kate'];
+  // 3. 轻微偏差：70分（允许小学生发音不准）
+  const lightWrong = ['cap', 'ca', 'ke', 'ce'];
+  // 4. 明显错误：20分（完全无关单词）
+  const badWords = ['dog', 'cat', 'bird', 'apple', 'book', 'pen'];
+
+  // 判定逻辑
+  if (perfect.includes(word)) return 100;
+  if (longA.includes(word)) return 90;
+  if (lightWrong.includes(word)) return 70;
+  if (badWords.includes(word)) return 20;
+
+  // 模糊匹配：只要和cape拼写接近，都给70分
+  const target = 'cape';
+  const distance = levenshteinDistance(word, target);
+  if (distance <= 2) return 70;
+  
+  // 完全不认识的单词：20分（明显错误）
+  return 20;
+}
+
+// 编辑距离算法（无需修改）
 function levenshteinDistance(a, b) {
   const matrix = [];
   for (let i = 0; i <= b.length; i++) matrix[i] = [i];
@@ -638,28 +624,7 @@ function levenshteinDistance(a, b) {
   return matrix[b.length][a.length];
 }
 
-function evaluatePronunciation(transcript, confidence) {
-  const word = transcript.toLowerCase().trim().replace(/[^\w\s]/g, '');
-  const perfectMatches = ['cape', 'kape', 'kayp', 'cake'];
-  const longAVariants = ['cave', 'tape', 'shape', 'keep', 'k', 'ate'];
-  const shortAVariants = ['cap', 'cab', 'cat', 'map'];
-
-  let baseScore = 0;
-  if (perfectMatches.includes(word)) baseScore = 100;
-  else if (longAVariants.includes(word)) baseScore = 75;
-  else if (shortAVariants.includes(word)) baseScore = 30;
-  else {
-    const target = 'cape';
-    const distance = levenshteinDistance(word, target);
-    const maxLength = Math.max(word.length, target.length);
-    baseScore = ((maxLength - distance) / maxLength) * 100;
-  }
-
-  const safeConfidence = confidence > 0 ? confidence : 0.5; 
-  return Math.round(baseScore * (0.7 + 0.3 * safeConfidence));
-}
-
-// --- 其他功能 ---
+// 听发音按钮
 document.getElementById('listenButton').addEventListener('click', () => {
   const synth = window.speechSynthesis;
   const utter = new SpeechSynthesisUtterance(state.awake ? "cape" : "cap");
@@ -667,7 +632,7 @@ document.getElementById('listenButton').addEventListener('click', () => {
   synth.speak(utter);
 });
 
-// 初始化UI
+// 初始化
 updateVisuals();
   </script>
 </body>
